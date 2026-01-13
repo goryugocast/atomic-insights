@@ -13,14 +13,30 @@
     padding-bottom: 5px;
 }
 
-.graph-analysis-refresh-btn {
+.graph-analysis-controls {
+    display: flex;
+    gap: 4px;
+}
+
+.graph-analysis-control-btn {
     border: none;
     background: transparent;
     cursor: pointer;
     color: var(--text-muted);
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    /* Align icon vertically */
 }
-.graph-analysis-refresh-btn:hover {
+
+.graph-analysis-control-btn:hover {
     color: var(--text-normal);
+    background-color: var(--background-modifier-hover);
+}
+
+.graph-analysis-control-btn.is-active {
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
 }
 
 .graph-analysis-list {
@@ -44,6 +60,7 @@
     transition: background-color 0.1s;
     user-select: none;
 }
+
 .graph-analysis-item:hover {
     background-color: var(--background-secondary-alt);
 }

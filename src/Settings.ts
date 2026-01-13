@@ -3,10 +3,12 @@ import AtomicInsightsPlugin from './main';
 
 export interface AtomicInsightsSettings {
     excludedFolders: string;
+    showFolderNames: boolean;
 }
 
 export const DEFAULT_SETTINGS: AtomicInsightsSettings = {
     excludedFolders: '',
+    showFolderNames: false,
 };
 
 export class AtomicInsightsSettingTab extends PluginSettingTab {
@@ -21,6 +23,16 @@ export class AtomicInsightsSettingTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
         containerEl.createEl('h2', { text: 'Atomic Insights Settings' });
+
+        new Setting(containerEl)
+            .setName('Show Folder Names')
+            .setDesc('Reset the view to apply changes immediately.')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.showFolderNames)
+                .onChange(async (value) => {
+                    this.plugin.settings.showFolderNames = value;
+                    await this.plugin.saveSettings();
+                }));
 
         new Setting(containerEl)
             .setName('Excluded Folders')

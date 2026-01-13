@@ -35,6 +35,11 @@ export class AtomicInsightsView extends ItemView {
                 this.update(file.path);
             }
         }));
+
+        // Also listen to active-leaf-change to catch initial load or focus changes
+        this.registerEvent(this.app.workspace.on('active-leaf-change', () => {
+            this.update();
+        }));
     }
 
     async update(filePath?: string) {
@@ -78,8 +83,33 @@ export class AtomicInsightsView extends ItemView {
         // Header
         const header = dataContainer.createEl('h4', { text: 'Atomic Insights', cls: 'graph-analysis-header' });
 
+        // Controls Container
+        const controls = header.createDiv({ cls: 'graph-analysis-controls' });
+
+        // Decrease nesting visually by flexbox in css if needed, but for now append buttons to header or controls.
+        // Let's put buttons in a container to keep them together.
+
+        // Folder Toggle Button
+        // Folder Toggle Button
+        const folderBtn = controls.createEl('button', {
+            cls: 'graph-analysis-control-btn' + (this.plugin.settings.showFolderNames ? ' is-active' : ''),
+            title: this.plugin.settings.showFolderNames ? 'Hide Folder Names' : 'Show Folder Names'
+        });
+
+        const iconName = this.plugin.settings.showFolderNames ? 'folder-tree' : 'folder';
+        setIcon(folderBtn, iconName);
+
+        folderBtn.onclick = async () => {
+            this.plugin.settings.showFolderNames = !this.plugin.settings.showFolderNames;
+            await this.plugin.saveSettings();
+            this.update(this.currentFilePath ?? undefined);
+        };
+
         // Refresh Button
-        const refreshBtn = header.createEl('button', { cls: 'graph-analysis-refresh-btn' });
+        const refreshBtn = controls.createEl('button', {
+            cls: 'graph-analysis-control-btn',
+            title: 'Refresh Analysis'
+        });
         setIcon(refreshBtn, "refresh-cw");
         refreshBtn.onclick = () => this.update(this.currentFilePath ?? undefined);
 
@@ -129,16 +159,17 @@ export class AtomicInsightsView extends ItemView {
 
             // Name
             const nameEl = item.createDiv({ cls: 'graph-analysis-item-name' });
-            nameEl.innerText = res.path.replace('.md', '');
+            const displayName = this.plugin.settings.showFolderNames
+                ? res.path.replace('.md', '')
+                : res.path.split('/').pop()?.replace('.md', '') ?? res.path;
+
+            nameEl.innerText = displayName;
 
             // Score Bar
             const barContainer = item.createDiv({ cls: 'graph-analysis-item-bar-container' });
             const bar = barContainer.createDiv({ cls: 'graph-analysis-item-bar' });
             bar.style.width = `${scorePercent}%`;
             bar.title = `Score: ${res.score.toFixed(2)}`;
-
-            // Common Neighbors Tooltip (Removed to avoid conflict with hover preview)
-            // item.title = ...
         });
     }
 

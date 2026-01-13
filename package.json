@@ -1,6 +1,6 @@
 {
   "name": "graph-analysis",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Analyse your Obsidian graph (Adamic Adar)",
   "main": "main.js",
   "scripts": {
