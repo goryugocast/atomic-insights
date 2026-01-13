@@ -1,0 +1,10 @@
+{
+    "conventionalCommits.scopes": [
+        "coCites",
+        "commDetection",
+        "similarity",
+        "labelProp",
+        "HITS",
+        "NLP"
+    ]
+}
