@@ -1,6 +1,6 @@
 node_modules/
-main.js
 dist/
 .DS_Store
 *.zip
 .env
+OBSIDIAN_PLUGIN_DEV_GUIDE.md
