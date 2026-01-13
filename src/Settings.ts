@@ -1,18 +1,18 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
-import GraphAnalysisPlugin from './main';
+import AtomicInsightsPlugin from './main';
 
-export interface GraphAnalysisSettings {
+export interface AtomicInsightsSettings {
     excludedFolders: string;
 }
 
-export const DEFAULT_SETTINGS: GraphAnalysisSettings = {
+export const DEFAULT_SETTINGS: AtomicInsightsSettings = {
     excludedFolders: '',
 };
 
-export class GraphAnalysisSettingTab extends PluginSettingTab {
-    plugin: GraphAnalysisPlugin;
+export class AtomicInsightsSettingTab extends PluginSettingTab {
+    plugin: AtomicInsightsPlugin;
 
-    constructor(app: App, plugin: GraphAnalysisPlugin) {
+    constructor(app: App, plugin: AtomicInsightsPlugin) {
         super(app, plugin);
         this.plugin = plugin;
     }
@@ -20,7 +20,7 @@ export class GraphAnalysisSettingTab extends PluginSettingTab {
     display(): void {
         const { containerEl } = this;
         containerEl.empty();
-        containerEl.createEl('h2', { text: 'Graph Analysis (Adamic Adar) Settings' });
+        containerEl.createEl('h2', { text: 'Atomic Insights Settings' });
 
         new Setting(containerEl)
             .setName('Excluded Folders')

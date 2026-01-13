@@ -1,33 +1,50 @@
-import { Plugin, WorkspaceLeaf } from 'obsidian';
-import { AnalysisView, VIEW_TYPE_GRAPH_ANALYSIS } from './AnalysisView';
-import { DEFAULT_SETTINGS, GraphAnalysisSettings, GraphAnalysisSettingTab } from './Settings';
+import { Plugin, WorkspaceLeaf, addIcon } from 'obsidian';
+import { AtomicInsightsView, VIEW_TYPE_ATOMIC_INSIGHTS } from './AnalysisView';
+import { DEFAULT_SETTINGS, AtomicInsightsSettings, AtomicInsightsSettingTab } from './Settings';
 
-export default class GraphAnalysisPlugin extends Plugin {
-    settings: GraphAnalysisSettings;
+export default class AtomicInsightsPlugin extends Plugin {
+    settings: AtomicInsightsSettings;
 
     async onload() {
-        console.log('Loading Graph Analysis (Adamic Adar)');
+        console.log('Loading Atomic Insights');
 
         await this.loadSettings();
 
+        // Custom Icon: Atomic Network
+        // A central core with 3 orbiting nodes connected by lines
+        addIcon('atomic-insights', `
+            <circle cx="50" cy="50" r="14" fill="currentColor" />
+            <circle cx="20" cy="20" r="8" fill="currentColor" />
+            <circle cx="80" cy="20" r="8" fill="currentColor" />
+            <circle cx="50" cy="85" r="8" fill="currentColor" />
+            <line x1="50" y1="50" x2="20" y2="20" stroke="currentColor" stroke-width="6" />
+            <line x1="50" y1="50" x2="80" y2="20" stroke="currentColor" stroke-width="6" />
+            <line x1="50" y1="50" x2="50" y2="85" stroke="currentColor" stroke-width="6" />
+        `);
+
         this.registerView(
-            VIEW_TYPE_GRAPH_ANALYSIS,
-            (leaf: WorkspaceLeaf) => new AnalysisView(leaf, this)
+            VIEW_TYPE_ATOMIC_INSIGHTS,
+            (leaf: WorkspaceLeaf) => new AtomicInsightsView(leaf, this)
         );
 
+        // Ribbon Icon
+        this.addRibbonIcon('atomic-insights', 'Atomic Insights', () => {
+            this.activateView();
+        });
+
         this.addCommand({
-            id: 'show-graph-analysis-view',
-            name: 'Open Graph Analysis View',
+            id: 'open-atomic-insights',
+            name: 'Open Atomic Insights View',
             callback: () => {
                 this.activateView();
             },
         });
 
-        this.addSettingTab(new GraphAnalysisSettingTab(this.app, this));
+        this.addSettingTab(new AtomicInsightsSettingTab(this.app, this));
     }
 
     onunload() {
-        console.log('Unloading Graph Analysis');
+        console.log('Unloading Atomic Insights');
     }
 
     async loadSettings() {
@@ -45,7 +62,7 @@ export default class GraphAnalysisPlugin extends Plugin {
         const { workspace } = this.app;
 
         let leaf: WorkspaceLeaf | null = null;
-        const leaves = workspace.getLeavesOfType(VIEW_TYPE_GRAPH_ANALYSIS);
+        const leaves = workspace.getLeavesOfType(VIEW_TYPE_ATOMIC_INSIGHTS);
 
         if (leaves.length > 0) {
             leaf = leaves[0];
@@ -53,7 +70,7 @@ export default class GraphAnalysisPlugin extends Plugin {
             leaf = workspace.getRightLeaf(false);
             if (leaf) {
                 await leaf.setViewState({
-                    type: VIEW_TYPE_GRAPH_ANALYSIS,
+                    type: VIEW_TYPE_ATOMIC_INSIGHTS,
                     active: true,
                 });
             }

@@ -1,26 +1,30 @@
 import { ItemView, WorkspaceLeaf, TFile, Notice, MarkdownView, setIcon } from 'obsidian';
-import GraphAnalysisPlugin from './main';
+import AtomicInsightsPlugin from './main';
 import { AdamicAdar, AnalysisResult } from './AdamicAdar';
 
-export const VIEW_TYPE_GRAPH_ANALYSIS = 'graph-analysis-view';
+export const VIEW_TYPE_ATOMIC_INSIGHTS = 'atomic-insights-view';
 
-export class AnalysisView extends ItemView {
-    plugin: GraphAnalysisPlugin;
+export class AtomicInsightsView extends ItemView {
+    plugin: AtomicInsightsPlugin;
     adamicAdar: AdamicAdar;
     currentFilePath: string | null = null;
 
-    constructor(leaf: WorkspaceLeaf, plugin: GraphAnalysisPlugin) {
+    constructor(leaf: WorkspaceLeaf, plugin: AtomicInsightsPlugin) {
         super(leaf);
         this.plugin = plugin;
         this.adamicAdar = new AdamicAdar(plugin.app, plugin.settings);
     }
 
     getViewType() {
-        return VIEW_TYPE_GRAPH_ANALYSIS;
+        return VIEW_TYPE_ATOMIC_INSIGHTS;
     }
 
     getDisplayText() {
-        return 'Graph Analysis';
+        return 'Atomic Insights';
+    }
+
+    getIcon() {
+        return 'atomic-insights';
     }
 
     async onOpen() {
@@ -34,6 +38,12 @@ export class AnalysisView extends ItemView {
     }
 
     async update(filePath?: string) {
+        // Wait for layout to be ready to ensure active file can be retrieved
+        if (!this.app.workspace.layoutReady) {
+            this.app.workspace.onLayoutReady(() => this.update(filePath));
+            return;
+        }
+
         if (!filePath) {
             const activeFile = this.app.workspace.getActiveFile();
             if (activeFile) {
@@ -66,7 +76,7 @@ export class AnalysisView extends ItemView {
         const dataContainer = container.createDiv({ cls: 'graph-analysis-container' });
 
         // Header
-        const header = dataContainer.createEl('h4', { text: 'Adamic Adar', cls: 'graph-analysis-header' });
+        const header = dataContainer.createEl('h4', { text: 'Atomic Insights', cls: 'graph-analysis-header' });
 
         // Refresh Button
         const refreshBtn = header.createEl('button', { cls: 'graph-analysis-refresh-btn' });
@@ -99,10 +109,19 @@ export class AnalysisView extends ItemView {
                     const linkText = `[[${res.path.replace('.md', '')}]]`;
                     e.dataTransfer.setData('text/plain', linkText);
                     e.dataTransfer.effectAllowed = 'copy';
-
-                    // Optional: Custom Drag Image? 
-                    // Let's stick to default for simplicity first.
                 }
+            });
+
+            // Hover Preview
+            item.addEventListener('mouseover', (event) => {
+                this.app.workspace.trigger('hover-link', {
+                    event,
+                    source: VIEW_TYPE_ATOMIC_INSIGHTS,
+                    hoverParent: this,
+                    targetEl: item,
+                    linktext: res.path,
+                    sourcePath: this.currentFilePath ?? ''
+                });
             });
 
             // Visuals
@@ -118,8 +137,8 @@ export class AnalysisView extends ItemView {
             bar.style.width = `${scorePercent}%`;
             bar.title = `Score: ${res.score.toFixed(2)}`;
 
-            // Common Neighbors Tooltip (simple native title for now)
-            item.title = `Common: ${res.commonNeighbors.length}\n${res.commonNeighbors.map(p => p.replace('.md', '')).join(', ')}`;
+            // Common Neighbors Tooltip (Removed to avoid conflict with hover preview)
+            // item.title = ...
         });
     }
 
