@@ -1,5 +1,6 @@
 .graph-analysis-container {
-    padding: 10px;
+    padding: 0 4px 8px 4px;
+    /* Tighter horizontal padding to match native lists */
     height: 100%;
     overflow-y: auto;
 }
@@ -8,14 +9,23 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    height: 34px;
+    /* Matches standard Obsidian view header height */
+    margin: 0;
     border-bottom: 1px solid var(--background-modifier-border);
-    padding-bottom: 5px;
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-medium);
+    color: var(--text-normal);
+}
+
+.graph-analysis-title {
+    /* title inside header */
 }
 
 .graph-analysis-controls {
     display: flex;
-    gap: 4px;
+    gap: 2px;
+    /* Tighter gap */
 }
 
 .graph-analysis-control-btn {
@@ -26,7 +36,13 @@
     padding: 4px;
     border-radius: 4px;
     display: flex;
-    /* Align icon vertically */
+    align-items: center;
+}
+
+.graph-analysis-control-btn svg {
+    width: 14px;
+    /* Smaller icons like breadcrumbs */
+    height: 14px;
 }
 
 .graph-analysis-control-btn:hover {
@@ -42,7 +58,8 @@
 .graph-analysis-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
+    /* Reduced gap between items */
 }
 
 .graph-analysis-no-results {
@@ -55,7 +72,8 @@
 .graph-analysis-item {
     background-color: var(--background-secondary);
     border-radius: 4px;
-    padding: 8px;
+    padding: 6px 8px;
+    /* Reduced vertical padding */
     cursor: pointer;
     transition: background-color 0.1s;
     user-select: none;
@@ -69,11 +87,12 @@
     font-weight: 500;
     margin-bottom: 4px;
     color: var(--text-normal);
+    font-size: var(--font-ui-small);
 }
 
 .graph-analysis-item-bar-container {
     background-color: var(--background-modifier-border);
-    height: 4px;
+    height: 3px;
     border-radius: 2px;
     overflow: hidden;
     width: 100%;

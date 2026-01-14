@@ -81,7 +81,8 @@ export class AtomicInsightsView extends ItemView {
         const dataContainer = container.createDiv({ cls: 'graph-analysis-container' });
 
         // Header
-        const header = dataContainer.createEl('h4', { text: 'Atomic Insights', cls: 'graph-analysis-header' });
+        const header = dataContainer.createDiv({ cls: 'graph-analysis-header' });
+        header.createSpan({ text: 'Atomic Insights', cls: 'graph-analysis-title' });
 
         // Controls Container
         const controls = header.createDiv({ cls: 'graph-analysis-controls' });
