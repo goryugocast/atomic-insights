@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1] - 2026-01-14
+
+### Changed
+- **UI Refinement**: Compacted header and list items to improve data density.
+- **Alignment Fixes**: Aligned view header height and horizontal padding with Obsidian's native breadcrumbs and sidebars.
+- **Icon Update**: Reduced icon size to 14px for better visual consistency.
+
 ## [0.2.0] - 2026-01-13
 
 ### Added
@@ -23,5 +30,6 @@ All notable changes to this project will be documented in this file.
 - **Japanese Documentation**: Detailed `README_JA.md` for Japanese users.
 
 ---
+[0.2.1]: https://github.com/goryugocast/atomic-insights/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/goryugocast/atomic-insights/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/goryugocast/atomic-insights/releases/tag/v0.1.0
