@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.2.2] - 2026-01-14
+## [0.2.3] - 2026-01-14
 
 ### Changed
 - **UI Refinement**: Compacted header and list items to improve data density.
