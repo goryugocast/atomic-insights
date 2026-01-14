@@ -134,12 +134,15 @@ export class AtomicInsightsView extends ItemView {
             });
 
             // Drag & Drop
+            // Drag & Drop
             item.addEventListener('dragstart', (e) => {
                 if (e.dataTransfer) {
-                    // Create wikilink
-                    const linkText = `[[${res.path.replace('.md', '')}]]`;
-                    e.dataTransfer.setData('text/plain', linkText);
-                    e.dataTransfer.effectAllowed = 'copy';
+                    const file = this.app.metadataCache.getFirstLinkpathDest(res.path, "");
+                    if (file) {
+                        const linkText = this.app.fileManager.generateMarkdownLink(file, this.currentFilePath ?? '');
+                        e.dataTransfer.setData('text/plain', linkText);
+                        e.dataTransfer.effectAllowed = 'copy';
+                    }
                 }
             });
 
