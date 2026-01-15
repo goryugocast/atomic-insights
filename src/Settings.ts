@@ -4,11 +4,15 @@ import AtomicInsightsPlugin from './main';
 export interface AtomicInsightsSettings {
     excludedFolders: string;
     showFolderNames: boolean;
+    showRelatedNotes: boolean;
+    replaceNativeBacklinks: boolean;
 }
 
 export const DEFAULT_SETTINGS: AtomicInsightsSettings = {
     excludedFolders: '',
     showFolderNames: false,
+    showRelatedNotes: true,
+    replaceNativeBacklinks: false,
 };
 
 export class AtomicInsightsSettingTab extends PluginSettingTab {
@@ -25,12 +29,22 @@ export class AtomicInsightsSettingTab extends PluginSettingTab {
         containerEl.createEl('h2', { text: 'Atomic Insights Settings' });
 
         new Setting(containerEl)
-            .setName('Show Folder Names')
-            .setDesc('Reset the view to apply changes immediately.')
+            .setName('Show Related Notes')
+            .setDesc('Show related notes at the bottom of the current note.')
             .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.showFolderNames)
+                .setValue(this.plugin.settings.showRelatedNotes)
                 .onChange(async (value) => {
-                    this.plugin.settings.showFolderNames = value;
+                    this.plugin.settings.showRelatedNotes = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('Replace native backlinks')
+            .setDesc('Hide the native Obsidian backlinks view and reset editor padding.')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.replaceNativeBacklinks)
+                .onChange(async (value) => {
+                    this.plugin.settings.replaceNativeBacklinks = value;
                     await this.plugin.saveSettings();
                 }));
 

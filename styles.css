@@ -90,6 +90,106 @@
     font-size: var(--font-ui-small);
 }
 
+/* Related Notes Footer */
+.atomic-insights-footer {
+    padding: 10px 20px 40px 20px;
+    /* Extra bottom padding for scroll */
+    border-top: 1px solid var(--background-modifier-border);
+    margin-top: 30px;
+    background-color: var(--background-primary);
+    width: 100%;
+    /* Ensure full width in flex container */
+    flex-shrink: 0;
+    /* Prevent shrinking */
+    box-sizing: border-box;
+    /* Include padding in width */
+}
+
+.atomic-insights-header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.atomic-insights-header {
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-bold);
+    color: var(--text-normal);
+    margin-bottom: 0;
+    /* Remove bottom margin as container handles it */
+}
+
+.atomic-insights-controls {
+    display: flex;
+    gap: 4px;
+}
+
+.atomic-insights-control-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 2px 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    opacity: 0.7;
+    transition: opacity 0.1s, color 0.1s;
+}
+
+.atomic-insights-control-btn:hover {
+    opacity: 1.0;
+    color: var(--text-normal);
+    background-color: var(--background-modifier-hover);
+}
+
+.atomic-insights-control-btn.is-active {
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
+    opacity: 1.0;
+}
+
+.atomic-insights-control-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.atomic-insights-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.atomic-insights-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 2px 0;
+}
+
+.atomic-insights-item a {
+    color: var(--text-accent);
+    text-decoration: none;
+    font-size: var(--font-ui-medium);
+}
+
+.atomic-insights-item a:hover {
+    text-decoration: underline;
+}
+
+.atomic-insights-score {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-faint);
+    margin-left: 10px;
+}
+
+.atomic-insights-empty {
+    color: var(--text-faint);
+    font-style: italic;
+    font-size: var(--font-ui-small);
+}
+
 .graph-analysis-item-bar-container {
     background-color: var(--background-modifier-border);
     height: 3px;
@@ -101,4 +201,15 @@
 .graph-analysis-item-bar {
     background-color: var(--interactive-accent);
     height: 100%;
+}
+
+/* Replace Native Backlinks Mode */
+.atomic-insights-replace-native .embedded-backlinks {
+    display: none !important;
+}
+
+.atomic-insights-replace-native .cm-content,
+.atomic-insights-replace-native .markdown-preview-sizer {
+    padding-bottom: 0 !important;
+    min-height: auto !important;
 }
