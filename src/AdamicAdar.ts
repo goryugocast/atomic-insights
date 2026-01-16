@@ -45,13 +45,28 @@ export class AdamicAdar {
             neighbors[v].add(u);
         };
 
+        const connectedNodes = new Set<string>(); // For direct link display (ignoring exclusion)
+
         // Populate Graph
         // We only care about resolved links for now as unresolved files don't have back-links easily tracked without full scan
         // iterating source files
         for (const source in resolvedLinks) {
+            const targets = resolvedLinks[source];
+
+            // Check for Direct Links (Backlinks/Outgoing) - IGNORING exclusion
+            if (source === sourcePath) {
+                for (const target in targets) {
+                    connectedNodes.add(target);
+                }
+            }
+            // Check for Incoming to Source
+            if (targets[sourcePath] !== undefined) {
+                connectedNodes.add(source);
+            }
+
+            // Now apply exclusion for Adamic Adar Graph
             if (isExcluded(source)) continue;
 
-            const targets = resolvedLinks[source];
             for (const target in targets) {
                 if (isExcluded(target)) continue;
                 addEdge(source, target);
@@ -65,70 +80,73 @@ export class AdamicAdar {
 
         // 2. Algorithm
         const sourceNeighbors = neighbors[sourcePath];
-        if (!sourceNeighbors) return [];
+        // Note: sourceNeighbors might be undefined if sourcePath is excluded or has no valid neighbors in filtered graph.
 
         const results: AnalysisResult[] = [];
 
-        for (const targetNode in neighbors) {
-            if (targetNode === sourcePath) continue;
+        // Only run AA if we have valid neighbors in the filtered graph
+        if (sourceNeighbors) {
+            for (const targetNode in neighbors) {
+                if (targetNode === sourcePath) continue;
 
-            const targetNeighbors = neighbors[targetNode];
-            let score = 0;
-            const commonNodes: string[] = [];
+                const targetNeighbors = neighbors[targetNode];
+                let score = 0;
+                const commonNodes: string[] = [];
 
-            // Intersection
-            sourceNeighbors.forEach(w => {
-                if (targetNeighbors.has(w)) {
-                    commonNodes.push(w);
-                    const degree = degrees[w];
-                    if (degree > 1) { // log(1) is 0, avoid division by zero if degree is 1 (though logic implies at least 2 if it connects two nodes)
-                        score += 1 / Math.log(degree);
+                // Intersection
+                sourceNeighbors.forEach(w => {
+                    if (targetNeighbors.has(w)) {
+                        commonNodes.push(w);
+                        const degree = degrees[w];
+                        if (degree > 1) { // log(1) is 0, avoid division by zero if degree is 1
+                            score += 1 / Math.log(degree);
+                        }
                     }
-                }
-            });
-
-            if (score > 0) {
-                results.push({
-                    path: targetNode,
-                    score: score,
-                    commonNeighbors: commonNodes
                 });
+
+                if (score > 0) {
+                    results.push({
+                        path: targetNode,
+                        score: score,
+                        commonNeighbors: commonNodes
+                    });
+                }
             }
         }
 
         // 2.5 Include Direct Links (Backlinks/Outgoing) if enabled
         if (this.settings.showBacklinks || this.settings.showOutgoingLinks) {
-            // Re-fetch neighbors from the graph we built (it is undirected, so it includes both directions)
-            const directNeighbors = neighbors[sourcePath];
+            // Use connectedNodes which includes excluded folders
+            connectedNodes.forEach(targetPath => {
+                // Check if already in results
+                if (results.some(r => r.path === targetPath)) return;
 
-            if (directNeighbors) {
-                directNeighbors.forEach(targetPath => {
-                    if (isExcluded(targetPath)) return;
+                // Check direction
+                const outgoing = resolvedLinks[sourcePath]?.[targetPath] !== undefined;
+                const incoming = resolvedLinks[targetPath]?.[sourcePath] !== undefined;
 
-                    // Check if already in results
-                    if (results.some(r => r.path === targetPath)) return;
+                let shouldInclude = false;
+                if (outgoing && this.settings.showOutgoingLinks) shouldInclude = true;
+                if (incoming && this.settings.showBacklinks) shouldInclude = true;
 
-                    // Check direction
-                    // We need to check resolvedLinks again to know the direction
-                    const outgoing = resolvedLinks[sourcePath]?.[targetPath] !== undefined;
-                    const incoming = resolvedLinks[targetPath]?.[sourcePath] !== undefined;
-
-                    let shouldInclude = false;
-                    if (outgoing && this.settings.showOutgoingLinks) shouldInclude = true;
-                    if (incoming && this.settings.showBacklinks) shouldInclude = true;
-
-                    if (shouldInclude) {
-                        results.push({
-                            path: targetPath,
-                            score: 0, // Base score for direct links without shared neighbors
-                            commonNeighbors: []
-                        });
-                    }
-                });
-            }
+                if (shouldInclude) {
+                    results.push({
+                        path: targetPath,
+                        score: 0, // Base score for direct links without shared neighbors
+                        commonNeighbors: []
+                    });
+                }
+            });
         }
 
         // 3. Sort
-        return results.sort((a, b) => b.score - a.score);
+        return results.sort((a, b) => {
+            if (b.score !== a.score) {
+                return b.score - a.score;
+            }
+            // Secondary sort: Alphabetical by Path Descending (Z-A)
+            // User requested "Alphabet Descending" (スコア0は降順).
+            return b.path.localeCompare(a.path);
+        });
     }
 }

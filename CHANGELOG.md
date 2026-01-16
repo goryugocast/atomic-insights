@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.6] - 2026-01-16
+### Changed
+- **UI Unification**: Fully unified the Footer UI with the Sidebar. Replaced text-based scores `(Score: 1.23)` with visual bar graphs.
+- **Auto-Update**: Implemented robust auto-update logic using `metadataCache.on('changed')` with a 2000ms debounce.
+- **List Logic**: Increased footer list limit to 50 items to ensure Direct Links (Score 0) are always visible.
+
+
 ## [0.2.5] - 2026-01-16
 ### Added
 - **Link Direction Indicators**: Added icons to show link direction (Incoming `<-`, Outgoing `->`, Bidirectional `⇄`).

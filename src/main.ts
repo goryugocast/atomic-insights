@@ -53,6 +53,17 @@ export default class AtomicInsightsPlugin extends Plugin {
             })
         );
 
+        // Listen for metadata changes (Auto-Update)
+        // Uses metadataCache.on('changed') to ensure we have fresh resolvedLinks.
+        this.registerEvent(
+            this.app.metadataCache.on('changed', (_file) => {
+                const activeLeaf = this.app.workspace.getMostRecentLeaf();
+                if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
+                    this.relatedNotesView.debouncedUpdate(activeLeaf);
+                }
+            })
+        );
+
         // Initial check for active leaf
         this.app.workspace.onLayoutReady(() => {
             const activeLeaf = this.app.workspace.getMostRecentLeaf();

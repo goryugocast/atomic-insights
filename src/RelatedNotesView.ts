@@ -1,4 +1,4 @@
-import { MarkdownView, WorkspaceLeaf, TFile, setIcon } from 'obsidian';
+import { MarkdownView, WorkspaceLeaf, TFile, setIcon, debounce } from 'obsidian';
 import AtomicInsightsPlugin from './main';
 import { AdamicAdar } from './AdamicAdar';
 
@@ -8,9 +8,15 @@ export class RelatedNotesView {
     container: HTMLElement | null = null;
     currentFile: TFile | null = null;
 
+    debouncedUpdate: (leaf: WorkspaceLeaf) => void;
+
     constructor(plugin: AtomicInsightsPlugin) {
         this.plugin = plugin;
         this.adamicAdar = new AdamicAdar(plugin.app, plugin.settings);
+
+        this.debouncedUpdate = debounce((leaf: WorkspaceLeaf) => {
+            this.update(leaf);
+        }, 2000, true);
     }
 
     update(leaf: WorkspaceLeaf) {
@@ -95,7 +101,7 @@ export class RelatedNotesView {
 
         // Render Header & Controls
         const headerContainer = footer.createDiv({ cls: 'atomic-insights-header-container' });
-        const header = headerContainer.createEl('h6', { text: 'Related notes', cls: 'atomic-insights-header' });
+        const header = headerContainer.createEl('h6', { text: 'Atomic Insights', cls: 'atomic-insights-header' });
 
         // Controls
         const controls = headerContainer.createDiv({ cls: 'atomic-insights-controls' });
@@ -121,8 +127,8 @@ export class RelatedNotesView {
         if (results.length === 0) {
             listContainer.createDiv({ cls: 'atomic-insights-empty', text: 'No strongly related notes found.' });
         } else {
-            // Show top 10
-            const topResults = results.slice(0, 10);
+            // Show top 50 (Increased to ensure Direct Links are visible)
+            const topResults = results.slice(0, 50);
 
             topResults.forEach(res => {
                 const item = listContainer.createDiv({ cls: 'atomic-insights-item' });
@@ -131,20 +137,7 @@ export class RelatedNotesView {
                     ? res.path.replace('.md', '')
                     : res.path.split('/').pop()?.replace('.md', '') ?? res.path;
 
-                // Link
-                const link = item.createEl('a', {
-                    cls: 'internal-link',
-                    text: displayName,
-                    href: res.path
-                });
-
-                // Click handling
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    this.plugin.app.workspace.openLinkText(res.path, file.path);
-                });
-
-                // Link Direction Logic
+                // --- Calculate Icon / Direction FIRST ---
                 const resolvedLinks = this.plugin.app.metadataCache.resolvedLinks;
                 const outgoing = resolvedLinks[file.path]?.[res.path] !== undefined;
                 const incoming = resolvedLinks[res.path]?.[file.path] !== undefined;
@@ -153,7 +146,7 @@ export class RelatedNotesView {
                 let title = '';
 
                 if (outgoing && incoming) {
-                    iconName = 'arrow-right-left'; // Try standard lucide first
+                    iconName = 'arrow-right-left';
                     title = 'Bidirectional link';
                 } else if (outgoing) {
                     iconName = 'arrow-right';
@@ -163,33 +156,65 @@ export class RelatedNotesView {
                     title = 'Backlink';
                 }
 
-                // Create Icon Container specifically AT THE START
+                // 1. Icon Container (Left)
                 const iconContainer = item.createDiv({ cls: 'atomic-insights-icon-container' });
-
                 if (iconName) {
                     iconContainer.title = title;
                     setIcon(iconContainer, iconName);
-
-                    // Fallback check: if setIcon didn't produce an svg (e.g. icon not found), try backup
                     if (iconContainer.innerHTML === '' && iconName === 'arrow-right-left') {
-                        setIcon(iconContainer, 'switch'); // Backup for bidirectional
-                        if (iconContainer.innerHTML === '') {
-                            setIcon(iconContainer, 'arrow-up-down'); // Final backup
-                        }
+                        setIcon(iconContainer, 'switch');
+                        if (iconContainer.innerHTML === '') setIcon(iconContainer, 'arrow-up-down');
                     }
-                } else {
-                    // Empty container preserves alignment
                 }
 
-                // Re-order: Icon -> Link -> Score
-                // Since we appended Link earlier, we need to adjust or re-append. 
-                // Actually, in the code above, 'link' was created BEFORE this logic (line 135).
-                // We should INSERT the iconContainer at the beginning.
-                item.prepend(iconContainer);
+                // 2. Content Container (Right: Name + Bar)
+                const contentContainer = item.createDiv({ cls: 'atomic-insights-content-container' });
 
-                // Score
-                const details = item.createSpan({ cls: 'atomic-insights-score' });
-                details.setText(` (Score: ${res.score.toFixed(2)})`);
+                // Name
+                const nameEl = contentContainer.createDiv({ cls: 'atomic-insights-item-name' });
+                const link = nameEl.createEl('a', {
+                    cls: 'internal-link',
+                    text: displayName,
+                    href: res.path
+                });
+
+                // Click handling (on link)
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.plugin.app.workspace.openLinkText(res.path, file.path);
+                });
+
+                // Score Bar
+                const scorePercent = Math.min(100, Math.round(res.score * 10));
+                const barContainer = contentContainer.createDiv({ cls: 'atomic-insights-item-bar-container' });
+                const bar = barContainer.createDiv({ cls: 'atomic-insights-item-bar' });
+                bar.style.width = `${scorePercent}%`;
+                bar.title = `Score: ${res.score.toFixed(2)}`;
+
+                // Drag & Drop (on item)
+                item.setAttribute('draggable', 'true');
+                item.addEventListener('dragstart', (e) => {
+                    if (e.dataTransfer) {
+                        const targetFile = this.plugin.app.metadataCache.getFirstLinkpathDest(res.path, file.path);
+                        if (targetFile) {
+                            const linkText = this.plugin.app.fileManager.generateMarkdownLink(targetFile, file.path);
+                            e.dataTransfer.setData('text/plain', linkText);
+                            e.dataTransfer.effectAllowed = 'copy';
+                        }
+                    }
+                });
+
+                // Hover Preview (on item)
+                item.addEventListener('mouseover', (event) => {
+                    this.plugin.app.workspace.trigger('hover-link', {
+                        event,
+                        source: 'atomic-insights-footer',
+                        hoverParent: view,
+                        targetEl: item,
+                        linktext: res.path,
+                        sourcePath: file.path
+                    });
+                });
             });
         }
     }

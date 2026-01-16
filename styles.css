@@ -182,7 +182,6 @@
     width: 24px;
     /* Increased to 24px to match native tree-item indentation/arrow zone */
     min-width: 24px;
-    height: 100%;
     flex-shrink: 0;
     margin-right: 0;
     /* Native items usually include spacing in the icon area or padding */
@@ -204,18 +203,35 @@
 .atomic-insights-item {
     display: flex;
     align-items: center;
+    /* Center items vertically */
     justify-content: flex-start;
-    padding: 4px 8px 4px 0;
-    /* Match native left-side flush with explicit Icon zone */
+    padding: 5px 8px 5px 0;
     font-size: var(--font-ui-small);
     line-height: var(--line-height-tight);
     color: var(--text-normal);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.atomic-insights-item:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.atomic-insights-content-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+}
+
+.atomic-insights-item-name {
+    margin-bottom: 3px;
+    line-height: var(--line-height-normal);
+    font-weight: 500;
 }
 
 .atomic-insights-item a {
-    flex-grow: 1;
-    margin-right: 8px;
-    /* space between text and score */
     color: var(--text-normal);
     text-decoration: none;
 }
@@ -223,6 +239,19 @@
 .atomic-insights-item a:hover {
     text-decoration: underline;
     color: var(--text-accent);
+}
+
+.atomic-insights-item-bar-container {
+    background-color: var(--background-modifier-border);
+    height: 3px;
+    border-radius: 2px;
+    overflow: hidden;
+    width: 100%;
+}
+
+.atomic-insights-item-bar {
+    background-color: var(--interactive-accent);
+    height: 100%;
 }
 
 /* Fix sidebar item layout */
