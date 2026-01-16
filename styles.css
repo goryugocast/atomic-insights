@@ -1,7 +1,7 @@
 .graph-analysis-container {
-    padding: 0 4px 8px 4px;
-    /* Tighter horizontal padding to match native lists */
-    height: 100%;
+    padding: 0;
+    /* Align with search-result-container which typically has minimal container padding, items handle it */
+    min-height: 100%;
     overflow-y: auto;
 }
 
@@ -10,70 +10,30 @@
     justify-content: space-between;
     align-items: center;
     height: 34px;
-    /* Matches standard Obsidian view header height */
     margin: 0;
+    padding: 0 12px;
+    /* Add native-like header padding */
     border-bottom: 1px solid var(--background-modifier-border);
     font-size: var(--font-ui-small);
     font-weight: var(--font-medium);
     color: var(--text-normal);
 }
 
-.graph-analysis-title {
-    /* title inside header */
-}
-
-.graph-analysis-controls {
-    display: flex;
-    gap: 2px;
-    /* Tighter gap */
-}
-
-.graph-analysis-control-btn {
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    color: var(--text-muted);
-    padding: 4px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-}
-
-.graph-analysis-control-btn svg {
-    width: 14px;
-    /* Smaller icons like breadcrumbs */
-    height: 14px;
-}
-
-.graph-analysis-control-btn:hover {
-    color: var(--text-normal);
-    background-color: var(--background-modifier-hover);
-}
-
-.graph-analysis-control-btn.is-active {
-    color: var(--text-on-accent);
-    background-color: var(--interactive-accent);
-}
-
 .graph-analysis-list {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    /* Reduced gap between items */
+    padding: 4px 0 16px 0;
+    /* Match the '4px 1px 16px' vibe but handled on list/items */
 }
 
-.graph-analysis-no-results {
-    color: var(--text-muted);
-    font-style: italic;
-    text-align: center;
-    margin-top: 20px;
-}
+/* ... existing styles ... */
 
 .graph-analysis-item {
-    background-color: var(--background-secondary);
-    border-radius: 4px;
-    padding: 6px 8px;
-    /* Reduced vertical padding */
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    padding: 5px 12px;
+    /* Standard native item padding */
     cursor: pointer;
     transition: background-color 0.1s;
     user-select: none;
@@ -92,18 +52,17 @@
 
 /* Related Notes Footer */
 .atomic-insights-footer {
-    padding: 10px 20px 40px 20px;
-    /* Extra bottom padding for scroll */
+    padding: 20px 0 40px 0;
+    /* Removed horizontal padding (was 20px) to align with content */
     border-top: 1px solid var(--background-modifier-border);
     margin-top: 30px;
     background-color: var(--background-primary);
     width: 100%;
-    /* Ensure full width in flex container */
     flex-shrink: 0;
-    /* Prevent shrinking */
     box-sizing: border-box;
-    /* Include padding in width */
 }
+
+
 
 .atomic-insights-header-container {
     display: flex;
@@ -212,4 +171,76 @@
 .atomic-insights-replace-native .markdown-preview-sizer {
     padding-bottom: 0 !important;
     min-height: auto !important;
+}
+
+/* Link Direction Icons */
+/* Link Direction Icons */
+.atomic-insights-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    /* Increased to 24px to match native tree-item indentation/arrow zone */
+    min-width: 24px;
+    height: 100%;
+    flex-shrink: 0;
+    margin-right: 0;
+    /* Native items usually include spacing in the icon area or padding */
+    color: var(--text-muted);
+}
+
+.atomic-insights-icon-container svg {
+    width: 14px;
+    height: 14px;
+    opacity: 0.7;
+}
+
+/* Ensure Name aligns properly */
+.graph-analysis-item-name {
+    margin-bottom: 0;
+    line-height: var(--line-height-normal);
+}
+
+.atomic-insights-item {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 4px 8px 4px 0;
+    /* Match native left-side flush with explicit Icon zone */
+    font-size: var(--font-ui-small);
+    line-height: var(--line-height-tight);
+    color: var(--text-normal);
+}
+
+.atomic-insights-item a {
+    flex-grow: 1;
+    margin-right: 8px;
+    /* space between text and score */
+    color: var(--text-normal);
+    text-decoration: none;
+}
+
+.atomic-insights-item a:hover {
+    text-decoration: underline;
+    color: var(--text-accent);
+}
+
+/* Fix sidebar item layout */
+.graph-analysis-item {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    padding: 4px 6px;
+}
+
+.graph-analysis-content-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+}
+
+.atomic-insights-direction-icon {
+    display: none;
 }

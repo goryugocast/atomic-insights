@@ -162,61 +162,7 @@ export class AtomicInsightsView extends ItemView {
             const scorePercent = Math.min(100, Math.round(res.score * 10)); // Arbitrary scale for visibility
 
             // Name
-            item.style.display = 'flex'; // Ensure item is flex container
-            item.style.alignItems = 'center'; // Center icon vertically against the block
-
-            // 1. Link Direction Logic (Determine first)
-            let iconName: string | null = null;
-            let title = '';
-
-            if (this.currentFilePath) {
-                const resolvedLinks = this.app.metadataCache.resolvedLinks;
-                const outgoing = resolvedLinks[this.currentFilePath]?.[res.path] !== undefined;
-                const incoming = resolvedLinks[res.path]?.[this.currentFilePath] !== undefined;
-
-                if (outgoing && incoming) {
-                    iconName = 'arrow-right-left';
-                    title = 'Bidirectional link';
-                } else if (outgoing) {
-                    iconName = 'arrow-right';
-                    title = 'Outgoing link';
-                } else if (incoming) {
-                    iconName = 'arrow-left';
-                    title = 'Backlink';
-                }
-            }
-
-            // 2. Create Icon Container (Left Column)
-            const iconContainer = item.createDiv({ cls: 'atomic-insights-icon-container' });
-            // Since we are now using flex-row for the ITEM, this container sits on the left.
-            // We need to ensure the alignment matches the "block" concept.
-            // If the user wants it outside the "Title + Graph" block, vertical centering is usually correct.
-
-            if (iconName) {
-                iconContainer.title = title;
-                setIcon(iconContainer, iconName);
-
-                if (iconContainer.innerHTML === '' && iconName === 'arrow-right-left') {
-                    setIcon(iconContainer, 'switch');
-                    if (iconContainer.innerHTML === '') {
-                        setIcon(iconContainer, 'arrow-up-down');
-                    }
-                }
-            }
-
-            // 3. Create Content Container (Right Column: Title + Bar)
-            const contentContainer = item.createDiv({ cls: 'graph-analysis-content-container' });
-            contentContainer.style.flexGrow = '1';
-            contentContainer.style.display = 'flex';
-            contentContainer.style.flexDirection = 'column';
-            contentContainer.style.overflow = 'hidden'; // prevent text overflow issues
-
-            // Name
-            const nameEl = contentContainer.createDiv({ cls: 'graph-analysis-item-name' });
-            // nameEl is just text now, no icon inside.
-            nameEl.style.display = 'block'; // Reset to block if inherited styles interfere (though typically div is block)
-            nameEl.style.marginBottom = '2px'; // Restore some spacing above bar
-
+            const nameEl = item.createDiv({ cls: 'graph-analysis-item-name' });
             const displayName = this.plugin.settings.showFolderNames
                 ? res.path.replace('.md', '')
                 : res.path.split('/').pop()?.replace('.md', '') ?? res.path;
@@ -224,7 +170,7 @@ export class AtomicInsightsView extends ItemView {
             nameEl.innerText = displayName;
 
             // Score Bar
-            const barContainer = contentContainer.createDiv({ cls: 'graph-analysis-item-bar-container' });
+            const barContainer = item.createDiv({ cls: 'graph-analysis-item-bar-container' });
             const bar = barContainer.createDiv({ cls: 'graph-analysis-item-bar' });
             bar.style.width = `${scorePercent}%`;
             bar.title = `Score: ${res.score.toFixed(2)}`;

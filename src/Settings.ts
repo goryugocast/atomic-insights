@@ -6,6 +6,8 @@ export interface AtomicInsightsSettings {
     showFolderNames: boolean;
     showRelatedNotes: boolean;
     replaceNativeBacklinks: boolean;
+    showBacklinks: boolean;
+    showOutgoingLinks: boolean;
 }
 
 export const DEFAULT_SETTINGS: AtomicInsightsSettings = {
@@ -13,6 +15,8 @@ export const DEFAULT_SETTINGS: AtomicInsightsSettings = {
     showFolderNames: false,
     showRelatedNotes: true,
     replaceNativeBacklinks: false,
+    showBacklinks: true,
+    showOutgoingLinks: true,
 };
 
 export class AtomicInsightsSettingTab extends PluginSettingTab {
@@ -45,6 +49,26 @@ export class AtomicInsightsSettingTab extends PluginSettingTab {
                 .setValue(this.plugin.settings.replaceNativeBacklinks)
                 .onChange(async (value) => {
                     this.plugin.settings.replaceNativeBacklinks = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('Show Backlinks')
+            .setDesc('Include directly linked notes (Backlinks) in the matching results.')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.showBacklinks)
+                .onChange(async (value) => {
+                    this.plugin.settings.showBacklinks = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('Show Outgoing Links')
+            .setDesc('Include directly linked notes (Outgoing) in the matching results.')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.showOutgoingLinks)
+                .onChange(async (value) => {
+                    this.plugin.settings.showOutgoingLinks = value;
                     await this.plugin.saveSettings();
                 }));
 

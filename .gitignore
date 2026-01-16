@@ -4,3 +4,4 @@ dist/
 *.zip
 .env
 OBSIDIAN_PLUGIN_DEV_GUIDE.md
+.agent/

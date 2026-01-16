@@ -144,6 +144,49 @@ export class RelatedNotesView {
                     this.plugin.app.workspace.openLinkText(res.path, file.path);
                 });
 
+                // Link Direction Logic
+                const resolvedLinks = this.plugin.app.metadataCache.resolvedLinks;
+                const outgoing = resolvedLinks[file.path]?.[res.path] !== undefined;
+                const incoming = resolvedLinks[res.path]?.[file.path] !== undefined;
+
+                let iconName: string | null = null;
+                let title = '';
+
+                if (outgoing && incoming) {
+                    iconName = 'arrow-right-left'; // Try standard lucide first
+                    title = 'Bidirectional link';
+                } else if (outgoing) {
+                    iconName = 'arrow-right';
+                    title = 'Outgoing link';
+                } else if (incoming) {
+                    iconName = 'arrow-left';
+                    title = 'Backlink';
+                }
+
+                // Create Icon Container specifically AT THE START
+                const iconContainer = item.createDiv({ cls: 'atomic-insights-icon-container' });
+
+                if (iconName) {
+                    iconContainer.title = title;
+                    setIcon(iconContainer, iconName);
+
+                    // Fallback check: if setIcon didn't produce an svg (e.g. icon not found), try backup
+                    if (iconContainer.innerHTML === '' && iconName === 'arrow-right-left') {
+                        setIcon(iconContainer, 'switch'); // Backup for bidirectional
+                        if (iconContainer.innerHTML === '') {
+                            setIcon(iconContainer, 'arrow-up-down'); // Final backup
+                        }
+                    }
+                } else {
+                    // Empty container preserves alignment
+                }
+
+                // Re-order: Icon -> Link -> Score
+                // Since we appended Link earlier, we need to adjust or re-append. 
+                // Actually, in the code above, 'link' was created BEFORE this logic (line 135).
+                // We should INSERT the iconContainer at the beginning.
+                item.prepend(iconContainer);
+
                 // Score
                 const details = item.createSpan({ cls: 'atomic-insights-score' });
                 details.setText(` (Score: ${res.score.toFixed(2)})`);

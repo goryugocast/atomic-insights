@@ -1,5 +1,5 @@
 import { App, TFile } from 'obsidian';
-import { GraphAnalysisSettings } from './Settings';
+import { AtomicInsightsSettings } from './Settings';
 
 export interface AnalysisResult {
     path: string;
@@ -9,9 +9,9 @@ export interface AnalysisResult {
 
 export class AdamicAdar {
     app: App;
-    settings: GraphAnalysisSettings;
+    settings: AtomicInsightsSettings;
 
-    constructor(app: App, settings: GraphAnalysisSettings) {
+    constructor(app: App, settings: AtomicInsightsSettings) {
         this.app = app;
         this.settings = settings;
     }
@@ -92,6 +92,38 @@ export class AdamicAdar {
                     path: targetNode,
                     score: score,
                     commonNeighbors: commonNodes
+                });
+            }
+        }
+
+        // 2.5 Include Direct Links (Backlinks/Outgoing) if enabled
+        if (this.settings.showBacklinks || this.settings.showOutgoingLinks) {
+            // Re-fetch neighbors from the graph we built (it is undirected, so it includes both directions)
+            const directNeighbors = neighbors[sourcePath];
+
+            if (directNeighbors) {
+                directNeighbors.forEach(targetPath => {
+                    if (isExcluded(targetPath)) return;
+
+                    // Check if already in results
+                    if (results.some(r => r.path === targetPath)) return;
+
+                    // Check direction
+                    // We need to check resolvedLinks again to know the direction
+                    const outgoing = resolvedLinks[sourcePath]?.[targetPath] !== undefined;
+                    const incoming = resolvedLinks[targetPath]?.[sourcePath] !== undefined;
+
+                    let shouldInclude = false;
+                    if (outgoing && this.settings.showOutgoingLinks) shouldInclude = true;
+                    if (incoming && this.settings.showBacklinks) shouldInclude = true;
+
+                    if (shouldInclude) {
+                        results.push({
+                            path: targetPath,
+                            score: 0, // Base score for direct links without shared neighbors
+                            commonNeighbors: []
+                        });
+                    }
                 });
             }
         }
