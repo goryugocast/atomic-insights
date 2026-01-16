@@ -5,4 +5,5 @@ dist/
 .env
 OBSIDIAN_PLUGIN_DEV_GUIDE.md
 .agent/
+
 HANDOVER.md
