@@ -114,107 +114,49 @@
     height: 16px;
 }
 
+/* Main List Container */
 .atomic-insights-list {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    padding: 0;
 }
 
 .atomic-insights-item {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    padding: 2px 0;
-}
-
-.atomic-insights-item a {
-    color: var(--text-accent);
-    text-decoration: none;
-    font-size: var(--font-ui-medium);
-}
-
-.atomic-insights-item a:hover {
-    text-decoration: underline;
-}
-
-.atomic-insights-score {
-    font-size: var(--font-ui-smaller);
-    color: var(--text-faint);
-    margin-left: 10px;
-}
-
-.atomic-insights-empty {
-    color: var(--text-faint);
-    font-style: italic;
-    font-size: var(--font-ui-small);
-}
-
-.graph-analysis-item-bar-container {
-    background-color: var(--background-modifier-border);
-    height: 3px;
-    border-radius: 2px;
-    overflow: hidden;
-    width: 100%;
-}
-
-.graph-analysis-item-bar {
-    background-color: var(--interactive-accent);
-    height: 100%;
-}
-
-/* Replace Native Backlinks Mode */
-.atomic-insights-replace-native .embedded-backlinks {
-    display: none !important;
-}
-
-.atomic-insights-replace-native .cm-content,
-.atomic-insights-replace-native .markdown-preview-sizer {
-    padding-bottom: 0 !important;
-    min-height: auto !important;
-}
-
-/* Link Direction Icons */
-/* Link Direction Icons */
-.atomic-insights-icon-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    /* Increased to 24px to match native tree-item indentation/arrow zone */
-    min-width: 24px;
-    flex-shrink: 0;
-    margin-right: 0;
-    /* Native items usually include spacing in the icon area or padding */
-    color: var(--text-muted);
-}
-
-.atomic-insights-icon-container svg {
-    width: 14px;
-    height: 14px;
-    opacity: 0.7;
-}
-
-/* Ensure Name aligns properly */
-.graph-analysis-item-name {
-    margin-bottom: 0;
-    line-height: var(--line-height-normal);
-}
-
-.atomic-insights-item {
-    display: flex;
-    align-items: center;
-    /* Center items vertically */
+    align-items: flex-start;
     justify-content: flex-start;
-    padding: 5px 8px 5px 0;
+    padding: 0 12px 0 6px;
+    /* Compact horizontal padding, vertical handled by children */
     font-size: var(--font-ui-small);
     line-height: var(--line-height-tight);
     color: var(--text-normal);
     border-radius: 4px;
-    cursor: pointer;
+    margin-bottom: 0;
 }
 
+/* Removed generic item hover to focus on sub-elements */
+/*
 .atomic-insights-item:hover {
     background-color: var(--background-modifier-hover);
+}
+*/
+
+/* Align icon with first line of text - Height Synchronization Strategy */
+.atomic-insights-icon-container {
+    /* Fixed height to match the standard single-line height of the header */
+    height: 24px;
+    width: 20px;
+    /* fixed width for alignment */
+    min-width: 20px;
+    margin-right: 6px;
+    margin-top: 0;
+
+    color: var(--text-muted);
+
+    display: flex;
+    align-items: center;
+    /* Vertically center the icon */
+    justify-content: center;
 }
 
 .atomic-insights-content-container {
@@ -225,20 +167,45 @@
     min-width: 0;
 }
 
+/* Header (Title + Bar) Clickable Area */
+.atomic-insights-item-header {
+    cursor: pointer;
+    border-radius: 4px;
+
+    /* Height Synchronization */
+    min-height: 24px;
+    /* Matches icon container */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* Center content vertically within the 24px min-height */
+
+    padding: 2px 4px;
+    margin: 0 -4px;
+    /* Counteract padding only, no vertical negative margin */
+    transition: background-color 0.1s;
+}
+
+.atomic-insights-item-header:hover {
+    background-color: var(--background-modifier-hover);
+}
+
 .atomic-insights-item-name {
-    margin-bottom: 3px;
+    margin-bottom: 2px;
+    /* reduced from 3px */
     line-height: var(--line-height-normal);
     font-weight: 500;
 }
 
-.atomic-insights-item a {
+/* Use generic link color but manual hover */
+.atomic-insights-item-name .internal-link {
     color: var(--text-normal);
     text-decoration: none;
 }
 
-.atomic-insights-item a:hover {
-    text-decoration: underline;
+.atomic-insights-item-header:hover .internal-link {
     color: var(--text-accent);
+    text-decoration: underline;
 }
 
 .atomic-insights-item-bar-container {
@@ -270,6 +237,65 @@
     min-width: 0;
 }
 
-.atomic-insights-direction-icon {
-    display: none;
+
+
+/* Context Preview */
+.atomic-insights-preview-container {
+    margin-top: 4px;
+    /* Reduced from 6px */
+    padding: 4px 8px;
+    /* Added internal padding */
+    border-left: 2px solid var(--background-modifier-border);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    line-height: var(--line-height-normal);
+    border-radius: 0 4px 4px 0;
+}
+
+/* Reset headers inside preview to prevent huge text */
+.atomic-insights-preview-container :is(h1, h2, h3, h4, h5, h6) {
+    font-size: 1em !important;
+    line-height: var(--line-height-normal) !important;
+    margin: 4px 0 !important;
+    font-weight: 600 !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+.atomic-insights-preview-container.is-clickable {
+    cursor: pointer;
+    transition: background-color 0.1s;
+}
+
+.atomic-insights-preview-container.is-clickable:hover {
+    background-color: var(--background-modifier-hover);
+    color: var(--text-normal);
+}
+
+.atomic-insights-preview-container .markdown-preview-view {
+    padding: 0;
+    min-height: auto;
+}
+
+.atomic-insights-preview-container p {
+    margin-block-start: 4px;
+    margin-block-end: 4px;
+}
+
+/* Replace Native Backlinks Mode */
+.atomic-insights-replace-native .embedded-backlinks {
+    display: none !important;
+}
+
+.atomic-insights-replace-native .cm-content,
+.atomic-insights-replace-native .markdown-preview-sizer {
+    padding-bottom: 0 !important;
+    min-height: auto !important;
+}
+
+/* Icon Size safety */
+.atomic-insights-icon-container svg {
+    width: 16px;
+    height: 16px;
+    opacity: 0.7;
 }

@@ -37,7 +37,10 @@ export class AtomicInsightsView extends ItemView {
         }));
 
         // Also listen to active-leaf-change to catch initial load or focus changes
-        this.registerEvent(this.app.workspace.on('active-leaf-change', () => {
+        this.registerEvent(this.app.workspace.on('active-leaf-change', (leaf) => {
+            if (leaf && leaf.view.getViewType() === VIEW_TYPE_ATOMIC_INSIGHTS) {
+                return;
+            }
             this.update();
         }));
     }
@@ -71,70 +74,243 @@ export class AtomicInsightsView extends ItemView {
     renderEmpty() {
         const container = this.containerEl.children[1];
         container.empty();
-        container.createEl('div', { text: 'No active file selected.', cls: 'graph-analysis-empty' });
+        container.createEl('div', { text: 'No active file selected.', cls: 'atomic-insights-empty' });
     }
 
     render(results: AnalysisResult[]) {
         const container = this.containerEl.children[1];
         container.empty();
 
-        const dataContainer = container.createDiv({ cls: 'graph-analysis-container' });
+        const dataContainer = container.createDiv({ cls: 'atomic-insights-list' }); // Use list class for container or specific container? 
+        // RelatedNotesView puts list inside footer. Here "dataContainer" is the main scrollable area.
+        // styles.css: .graph-analysis-container was used. existing .atomic-insights-list is flex col gap 4px.
+        // We generally want a wrapper. Let's start with a generic container if needed, but atomic-insights-list acts as the list.
+        // But we need the header first.
 
         // Header
-        const header = dataContainer.createDiv({ cls: 'graph-analysis-header' });
-        header.createSpan({ text: 'Atomic Insights', cls: 'graph-analysis-title' });
+        const headerContainer = container.createDiv({ cls: 'atomic-insights-header-container' });
 
-        // Controls Container
-        const controls = header.createDiv({ cls: 'graph-analysis-controls' });
+        headerContainer.createEl('h6', { text: 'Atomic Insights', cls: 'atomic-insights-header' });
 
-        // Decrease nesting visually by flexbox in css if needed, but for now append buttons to header or controls.
-        // Let's put buttons in a container to keep them together.
+        // Controls
+        const controls = headerContainer.createDiv({ cls: 'atomic-insights-controls' });
 
-        // Folder Toggle Button
+        // Context Toggle Button
+        const contextBtn = controls.createEl('button', {
+            cls: 'atomic-insights-control-btn' + (this.plugin.settings.showContext ? ' is-active' : ''),
+            title: this.plugin.settings.showContext ? 'Hide Context' : 'Show Context'
+        });
+        setIcon(contextBtn, 'chevrons-up-down');
+
+        contextBtn.onclick = async () => {
+            this.plugin.settings.showContext = !this.plugin.settings.showContext;
+            await this.plugin.saveSettings();
+            this.render(results); // Re-render with same results
+        };
+
         // Folder Toggle Button
         const folderBtn = controls.createEl('button', {
-            cls: 'graph-analysis-control-btn' + (this.plugin.settings.showFolderNames ? ' is-active' : ''),
+            cls: 'atomic-insights-control-btn' + (this.plugin.settings.showFolderNames ? ' is-active' : ''),
             title: this.plugin.settings.showFolderNames ? 'Hide Folder Names' : 'Show Folder Names'
         });
 
-        const iconName = this.plugin.settings.showFolderNames ? 'folder-tree' : 'folder';
-        setIcon(folderBtn, iconName);
+        const folderIcon = this.plugin.settings.showFolderNames ? 'folder-tree' : 'folder';
+        setIcon(folderBtn, folderIcon);
 
         folderBtn.onclick = async () => {
             this.plugin.settings.showFolderNames = !this.plugin.settings.showFolderNames;
             await this.plugin.saveSettings();
-            this.update(this.currentFilePath ?? undefined);
+            this.render(results);
         };
 
-        // Refresh Button
-        const refreshBtn = controls.createEl('button', {
-            cls: 'graph-analysis-control-btn',
-            title: 'Refresh Analysis'
-        });
-        setIcon(refreshBtn, "refresh-cw");
-        refreshBtn.onclick = () => this.update(this.currentFilePath ?? undefined);
-
         if (results.length === 0) {
-            dataContainer.createDiv({ text: 'No results found.', cls: 'graph-analysis-no-results' });
+            container.createDiv({ text: 'No results found.', cls: 'atomic-insights-empty' });
             return;
         }
 
-        const list = dataContainer.createEl('div', { cls: 'graph-analysis-list' });
+        const list = container.createDiv({ cls: 'atomic-insights-list' });
 
-        results.slice(0, 50).forEach(res => { // Limit to 50 for performance
-            const item = list.createDiv({ cls: 'graph-analysis-item' });
-            item.setAttribute('draggable', 'true');
+        results.slice(0, 20).forEach(res => { // Limit to 20
+            const item = list.createDiv({ cls: 'atomic-insights-item' });
+            const itemFile = this.plugin.app.metadataCache.getFirstLinkpathDest(res.path, this.currentFilePath ?? '');
 
-            // Click to open
-            item.addEventListener('click', (e) => {
-                // Command/Ctrl click for new tab handled by standard logic if we use openLinkText?
-                // Actually openLinkText behavior with modifiers is a bit manual, let's try standard.
-                const newLeaf = e.metaKey || e.ctrlKey;
-                this.app.workspace.openLinkText(res.path, this.currentFilePath ?? '', newLeaf);
+            // NOTE: dragstart/mouseover need 'file' (current active file) context?
+            // this.currentFilePath is string. We usually need the objects for proper logic, 
+            // but we can resolve using app.metadataCache if needed.
+            // For dragging, we need the target file (res.path).
+
+            const displayName = this.plugin.settings.showFolderNames
+                ? res.path.replace('.md', '')
+                : res.path.split('/').pop()?.replace('.md', '') ?? res.path;
+
+            // --- Calculate Icon / Direction ---
+            let iconName: string | null = null;
+            let title = '';
+
+            if (this.currentFilePath) {
+                const resolvedLinks = this.app.metadataCache.resolvedLinks;
+                const outgoing = resolvedLinks[this.currentFilePath]?.[res.path] !== undefined;
+                const incoming = resolvedLinks[res.path]?.[this.currentFilePath] !== undefined;
+
+                if (outgoing && incoming) {
+                    iconName = 'arrow-right-left';
+                    title = 'Bidirectional link';
+                } else if (outgoing) {
+                    iconName = 'arrow-right';
+                    title = 'Outgoing link';
+                } else if (incoming) {
+                    iconName = 'arrow-left';
+                    title = 'Backlink';
+                }
+            }
+
+            // 1. Icon Container
+            const iconContainer = item.createDiv({ cls: 'atomic-insights-icon-container' });
+            if (iconName) {
+                iconContainer.title = title;
+                setIcon(iconContainer, iconName);
+                if (iconContainer.innerHTML === '' && iconName === 'arrow-right-left') {
+                    setIcon(iconContainer, 'switch');
+                    if (iconContainer.innerHTML === '') setIcon(iconContainer, 'arrow-up-down');
+                }
+            }
+
+            // 2. Content Container
+            const contentContainer = item.createDiv({ cls: 'atomic-insights-content-container' });
+
+            // A. Item Header (Name + Bar) - Click to Open
+            const itemHeader = contentContainer.createDiv({ cls: 'atomic-insights-item-header' });
+
+            itemHeader.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.app.workspace.openLinkText(res.path, this.currentFilePath ?? '');
             });
 
+            // Name
+            const nameEl = itemHeader.createDiv({ cls: 'atomic-insights-item-name' });
+            nameEl.createEl('span', {
+                cls: 'internal-link',
+                text: displayName
+            });
+
+            // Score Bar
+            const scorePercent = Math.min(100, Math.round(res.score * 10));
+            const barContainer = itemHeader.createDiv({ cls: 'atomic-insights-item-bar-container' });
+            const bar = barContainer.createDiv({ cls: 'atomic-insights-item-bar' });
+            bar.style.width = `${scorePercent}%`;
+            bar.title = `Score: ${res.score.toFixed(2)}`;
+
+            // B. Context Preview
+            if (this.plugin.settings.showContext && this.currentFilePath) {
+                const previewContainer = contentContainer.createDiv({ cls: 'atomic-insights-preview-container' });
+
+                setTimeout(async () => {
+                    try {
+                        const targetFile = this.app.metadataCache.getFirstLinkpathDest(res.path, this.currentFilePath ?? '');
+                        if (!targetFile) return;
+
+                        const content = await this.app.vault.cachedRead(targetFile);
+                        const lines = content.split('\n');
+
+                        let textToShow = '';
+                        let linkLineIndex = -1;
+
+                        const cache = this.app.metadataCache.getFileCache(targetFile);
+                        if (cache?.links) {
+                            for (const l of cache.links) {
+                                const dest = this.app.metadataCache.getFirstLinkpathDest(l.link, targetFile.path);
+                                if (dest && dest.path === this.currentFilePath) {
+                                    linkLineIndex = l.position.start.line;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (linkLineIndex !== -1) {
+                            const targetLine = lines[linkLineIndex];
+                            const targetIndent = targetLine.search(/\S|$/);
+                            let extracted = [targetLine];
+                            for (let i = linkLineIndex + 1; i < lines.length; i++) {
+                                const nextLine = lines[i];
+                                if (nextLine.trim() === '') continue;
+                                const nextIndent = nextLine.search(/\S|$/);
+                                if (nextIndent > targetIndent) extracted.push(nextLine);
+                                else break;
+                                if (extracted.length > 5) break;
+                            }
+
+                            // Normalize Indentation
+                            let minIndent = Infinity;
+                            extracted.forEach(line => {
+                                if (line.trim().length > 0) {
+                                    const match = line.match(/^(\s*)/);
+                                    const indent = match ? match[1].length : 0;
+                                    if (indent < minIndent) minIndent = indent;
+                                }
+                            });
+                            if (minIndent !== Infinity && minIndent > 0) {
+                                extracted = extracted.map(line => line.length >= minIndent ? line.substring(minIndent) : line);
+                            }
+                            textToShow = extracted.join('\n');
+
+                        } else {
+                            let startLine = 0;
+                            if (lines[0]?.trim() === '---') {
+                                for (let i = 1; i < lines.length; i++) {
+                                    if (lines[i].trim() === '---') {
+                                        startLine = i + 1;
+                                        break;
+                                    }
+                                }
+                            }
+                            let extracted = [];
+                            for (let i = startLine; i < lines.length; i++) {
+                                const line = lines[i];
+                                if (line.trim() !== '') extracted.push(line);
+                                if (extracted.length >= 2) break;
+                            }
+                            textToShow = extracted.join('\n');
+                        }
+
+                        if (textToShow) {
+                            import('obsidian').then(({ MarkdownRenderer }) => {
+                                MarkdownRenderer.render(
+                                    this.app,
+                                    textToShow,
+                                    previewContainer,
+                                    targetFile.path,
+                                    this // Component
+                                );
+                            });
+
+                            previewContainer.addClass('is-clickable');
+                            previewContainer.addEventListener('click', async (e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+
+                                await this.app.workspace.openLinkText(res.path, this.currentFilePath ?? '');
+
+                                if (linkLineIndex !== -1) {
+                                    setTimeout(() => {
+                                        const activeLeaf = this.app.workspace.getMostRecentLeaf();
+                                        if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
+                                            const editor = activeLeaf.view.editor;
+                                            editor.setCursor({ line: linkLineIndex, ch: 0 });
+                                            editor.scrollIntoView({ from: { line: linkLineIndex, ch: 0 }, to: { line: linkLineIndex, ch: 0 } }, true);
+                                        }
+                                    }, 100);
+                                }
+                            });
+                        }
+
+                    } catch (e) {
+                        console.error("Atomic Insights: Failed to load context", e);
+                    }
+                }, 0);
+            }
+
             // Drag & Drop
-            // Drag & Drop
+            item.setAttribute('draggable', 'true');
             item.addEventListener('dragstart', (e) => {
                 if (e.dataTransfer) {
                     const file = this.app.metadataCache.getFirstLinkpathDest(res.path, "");
@@ -157,77 +333,6 @@ export class AtomicInsightsView extends ItemView {
                     sourcePath: this.currentFilePath ?? ''
                 });
             });
-
-            // Visuals
-            const scorePercent = Math.min(100, Math.round(res.score * 10)); // Arbitrary scale for visibility
-
-            // Name
-            item.style.display = 'flex'; // Ensure item is flex container
-            item.style.alignItems = 'center'; // Center icon vertically against the block
-
-            // 1. Link Direction Logic (Determine first)
-            let iconName: string | null = null;
-            let title = '';
-
-            if (this.currentFilePath) {
-                const resolvedLinks = this.app.metadataCache.resolvedLinks;
-                const outgoing = resolvedLinks[this.currentFilePath]?.[res.path] !== undefined;
-                const incoming = resolvedLinks[res.path]?.[this.currentFilePath] !== undefined;
-
-                if (outgoing && incoming) {
-                    iconName = 'arrow-right-left';
-                    title = 'Bidirectional link';
-                } else if (outgoing) {
-                    iconName = 'arrow-right';
-                    title = 'Outgoing link';
-                } else if (incoming) {
-                    iconName = 'arrow-left';
-                    title = 'Backlink';
-                }
-            }
-
-            // 2. Create Icon Container (Left Column)
-            const iconContainer = item.createDiv({ cls: 'atomic-insights-icon-container' });
-            // Since we are now using flex-row for the ITEM, this container sits on the left.
-            // We need to ensure the alignment matches the "block" concept.
-            // If the user wants it outside the "Title + Graph" block, vertical centering is usually correct.
-
-            if (iconName) {
-                iconContainer.title = title;
-                setIcon(iconContainer, iconName);
-
-                if (iconContainer.innerHTML === '' && iconName === 'arrow-right-left') {
-                    setIcon(iconContainer, 'switch');
-                    if (iconContainer.innerHTML === '') {
-                        setIcon(iconContainer, 'arrow-up-down');
-                    }
-                }
-            }
-
-            // 3. Create Content Container (Right Column: Title + Bar)
-            const contentContainer = item.createDiv({ cls: 'graph-analysis-content-container' });
-            contentContainer.style.flexGrow = '1';
-            contentContainer.style.display = 'flex';
-            contentContainer.style.flexDirection = 'column';
-            contentContainer.style.overflow = 'hidden'; // prevent text overflow issues
-
-            // Name
-            const nameEl = contentContainer.createDiv({ cls: 'graph-analysis-item-name' });
-            // nameEl is just text now, no icon inside.
-            nameEl.style.display = 'block'; // Reset to block if inherited styles interfere (though typically div is block)
-            nameEl.style.marginBottom = '2px'; // Restore some spacing above bar
-
-            const displayName = this.plugin.settings.showFolderNames
-                ? res.path.replace('.md', '')
-                : res.path.split('/').pop()?.replace('.md', '') ?? res.path;
-
-            nameEl.innerText = displayName;
-
-            // Score Bar
-            const barContainer = contentContainer.createDiv({ cls: 'graph-analysis-item-bar-container' });
-            const bar = barContainer.createDiv({ cls: 'graph-analysis-item-bar' });
-            bar.style.width = `${scorePercent}%`;
-            bar.title = `Score: ${res.score.toFixed(2)}`;
         });
     }
 

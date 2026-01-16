@@ -8,6 +8,7 @@ export interface AtomicInsightsSettings {
     replaceNativeBacklinks: boolean;
     showBacklinks: boolean;
     showOutgoingLinks: boolean;
+    showContext: boolean;
 }
 
 export const DEFAULT_SETTINGS: AtomicInsightsSettings = {
@@ -17,6 +18,7 @@ export const DEFAULT_SETTINGS: AtomicInsightsSettings = {
     replaceNativeBacklinks: false,
     showBacklinks: true,
     showOutgoingLinks: true,
+    showContext: false,
 };
 
 export class AtomicInsightsSettingTab extends PluginSettingTab {

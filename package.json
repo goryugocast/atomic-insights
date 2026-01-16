@@ -1,11 +1,12 @@
 {
   "name": "atomic-insights",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "Analyse your Obsidian graph (Adamic Adar)",
   "main": "main.js",
   "scripts": {
     "dev": "rollup --config rollup.config.js -w",
-    "build": "rollup --config rollup.config.js --environment BUILD:production"
+    "build": "rollup --config rollup.config.js --environment BUILD:production",
+    "deploy": "npm run build && cp main.js manifest.json styles.css \"/Users/goryugo/Library/Mobile Documents/iCloud~md~obsidian/Documents/Obsidian_local/.mac/plugins/atomic-insights/\""
   },
   "keywords": [],
   "author": "goryugo",

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.7] - 2026-01-16
+### Fixed
+- **Sidebar Interaction**: Fixed an issue where the sidebar required a double-click to respond (by preventing self-triggered re-renders).
+- **Layout Stability**: Completely refactored the sidebar/footer CSS to use Flexbox-based height synchronization (24px), eliminating fragile margin hacks that caused layout collapse.
+- **Icon Visibility**: Fixed an issue where direction icons (arrows) would disappear due to missing color styles.
+- **Empty State Styling**: Corrected the class name for the "No active file" message to ensure consistent styling.
+
 ## [0.2.6] - 2026-01-16
 ### Changed
 - **UI Unification**: Fully unified the Footer UI with the Sidebar. Replaced text-based scores `(Score: 1.23)` with visual bar graphs.

@@ -1,7 +1,7 @@
 {
 	"id": "atomic-insights",
 	"name": "Atomic Insights",
-	"version": "0.2.6",
+	"version": "0.2.7",
 	"minAppVersion": "0.15.0",
 	"description": "Analyze your Obsidian graph connections using the Adamic Adar index.",
 	"author": "goryugo",
