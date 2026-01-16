@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.5] - 2026-01-16
+### Added
+- **Link Direction Indicators**: Added icons to show link direction (Incoming `<-`, Outgoing `->`, Bidirectional `⇄`).
+- **Related Notes Footer**: Integrated direct links (backlinks and outgoing links) into the related notes list (configurable in settings).
+- **Settings**: Added toggles for 'Show Backlinks' and 'Show Outgoing Links'.
+
+### Changed
+- **UI & Layout**: Significantly refined the UI for both Sidebar and Footer views to match Obsidian's native "Linked mentions" style (padding, indentation, font size).
+- **Icon Alignment**: Fixed layout issues where icons were misaligned or collapsed.
+- **Direct Link Logic**: Updated scoring to include direct links with a base score.
+
 ## [0.2.3] - 2026-01-14
 
 ### Changed
