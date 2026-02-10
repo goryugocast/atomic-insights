@@ -4,7 +4,7 @@ A plugin to support the process of creating atomic notes and connecting them via
 
 ## Concept
 
-This plugin analyzes the link structure within your vault using the Adamic Adar index to suggest highly relevant notes. Its goal is to visualize objective connections based on your personal knowledge graph, rather than simple keyword matching.
+This plugin analyzes the link structure within your vault using the Adamic Adar index and combines it with optional context signals (metadata and time) to suggest highly relevant notes. Its goal is to visualize objective connections based on your personal knowledge graph, rather than simple keyword matching.
 
 ### Why Adamic Adar?
 
@@ -21,8 +21,10 @@ If the suggestions do not meet your expectations, continue the practice of "reco
 ## Features
 
 - Suggests related notes using the Adamic Adar index.
+- Optional context signals: filename emoji, YAML frontmatter, and date proximity.
+- Adjustable weights: Graph vs Other, plus per-signal tuning inside Other.
 - Ability to exclude specific folders (e.g., Templates, Archives, Daily Notes) from calculations.
-- Dedicated sidebar view.
+- Dedicated sidebar view and a footer view under the current note.
 - Supports native page previews (Cmd/Ctrl + Hover).
 - Click to navigate and drag-and-drop to create wikilinks.
 
@@ -32,6 +34,21 @@ If the suggestions do not meet your expectations, continue the practice of "reco
 2. The view in the right sidebar will update automatically based on your active note.
 3. Click an item to navigate, or drag an item into the editor to create a `[[Wikilink]]`.
 4. Add folder paths (one per line) in the Settings to exclude them from calculations.
+5. Tune Graph vs Other and the internal ratios for Emoji/YAML/Time in Settings.
+
+## Development
+
+### Build
+
+```bash
+npm run build
+```
+
+### Test
+
+```bash
+npm test
+```
 
 ## Credits & Inspiration
 

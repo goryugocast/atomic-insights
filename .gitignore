@@ -1,9 +1,17 @@
 node_modules/
 dist/
+coverage/
+.vitest/
 .DS_Store
 *.zip
 .env
+.env.*
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 OBSIDIAN_PLUGIN_DEV_GUIDE.md
 .agent/
 
 HANDOVER.md
+_ai_plans/

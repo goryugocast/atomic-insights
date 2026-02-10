@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-02-10
+### Added
+- **Hybrid Scoring**: Combined Graph (Adamic Adar) with context signals (Emoji, YAML, Time) using a weighted hybrid model.
+- **Other Weight Model**: Added Graph vs Other weight plus per-signal ratios (Emoji/YAML/Time) for practical tuning.
+- **Context-Aware Scoring**: New metadata and time strategies with exclusions applied consistently.
+- **Renderer Unification**: Sidebar and footer now share a single renderer implementation.
+- **Tests**: Added minimal unit tests for date parsing, exclusions, and weight ratios.
+
+### Changed
+- **Graph Scoring**: Handles incoming-only nodes to avoid empty related results.
+- **Settings**: Expanded scoring configuration and added new controls for metadata and time.
+
 ## [0.2.7] - 2026-01-16
 ### Fixed
 - **Sidebar Interaction**: Fixed an issue where the sidebar required a double-click to respond (by preventing self-triggered re-renders).
