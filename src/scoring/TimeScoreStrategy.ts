@@ -1,7 +1,6 @@
 import { App, TFile } from 'obsidian';
 import { AtomicInsightsSettings } from '../Settings';
 import { IScoringStrategy, ScoringResult } from './ScoringStrategy';
-import { buildExclusionFilter } from './exclusions';
 import { parseDateFromPath } from './timeParsing';
 
 export class TimeScoreStrategy implements IScoringStrategy {
@@ -18,11 +17,6 @@ export class TimeScoreStrategy implements IScoringStrategy {
             return [];
         }
 
-        const isExcluded = buildExclusionFilter(this.settings);
-        if (isExcluded(sourcePath)) {
-            return [];
-        }
-
         const sourceDate = parseDateFromPath(sourcePath);
         if (!sourceDate) {
             return [];
@@ -36,7 +30,6 @@ export class TimeScoreStrategy implements IScoringStrategy {
 
         files.forEach((file) => {
             if (file.path === sourcePath) return;
-            if (isExcluded(file.path)) return;
 
             const targetDate = parseDateFromPath(file.path);
             if (!targetDate) return;

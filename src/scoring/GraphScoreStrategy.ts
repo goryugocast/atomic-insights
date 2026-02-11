@@ -20,9 +20,7 @@ export class GraphScoreStrategy implements IScoringStrategy {
         const { resolvedLinks } = this.app.metadataCache;
 
         const isExcluded = buildExclusionFilter(this.settings);
-        if (isExcluded(sourcePath)) {
-            return [];
-        }
+        const isExcludedCandidate = (path: string) => path !== sourcePath && isExcluded(path);
 
         const neighbors: Record<string, Set<string>> = {};
         const degrees: Record<string, number> = {};
@@ -36,11 +34,11 @@ export class GraphScoreStrategy implements IScoringStrategy {
 
         // Populate Graph
         for (const source in resolvedLinks) {
-            if (isExcluded(source)) continue;
+            if (isExcludedCandidate(source)) continue;
             const targets = resolvedLinks[source];
 
             for (const target in targets) {
-                if (isExcluded(target)) continue;
+                if (isExcludedCandidate(target)) continue;
                 addEdge(source, target);
             }
         }
@@ -56,7 +54,7 @@ export class GraphScoreStrategy implements IScoringStrategy {
         if (!sourceNeighbors) {
             // Build incoming links for sourcePath if it has no outbound links
             for (const source in resolvedLinks) {
-                if (isExcluded(source)) continue;
+                if (isExcludedCandidate(source)) continue;
                 const targets = resolvedLinks[source];
                 if (targets && targets[sourcePath] !== undefined) {
                     addEdge(source, sourcePath);
@@ -68,6 +66,7 @@ export class GraphScoreStrategy implements IScoringStrategy {
         if (sourceNeighbors && sourceNeighbors.size > 0) {
             for (const targetNode in neighbors) {
                 if (targetNode === sourcePath) continue;
+                if (isExcluded(targetNode)) continue;
 
                 const targetNeighbors = neighbors[targetNode];
                 let rawScore = 0;

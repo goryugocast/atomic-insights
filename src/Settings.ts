@@ -135,6 +135,20 @@ export class AtomicInsightsSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
 
+        const excludedFolders = new Setting(containerEl)
+            .setName('Excluded Folders (Graph Only)')
+            .setDesc('One folder path per line. Applied only to Graph (Adamic Adar) calculation.')
+            .addTextArea(text => text
+                .setPlaceholder('Templates\nArchive')
+                .setValue(this.plugin.settings.excludedFolders)
+                .onChange(async (value) => {
+                    this.plugin.settings.excludedFolders = value;
+                    await this.plugin.saveSettings();
+                }));
+        excludedFolders.settingEl.style.borderTop = 'none';
+        excludedFolders.settingEl.style.paddingTop = '0';
+        excludedFolders.settingEl.style.paddingBottom = '18px';
+
         // Overall weight for non-graph signals
         new Setting(containerEl)
             .setName('Other (Non-Graph) Weight')
@@ -258,17 +272,5 @@ export class AtomicInsightsSettingTab extends PluginSettingTab {
         timeDetails.settingEl.style.paddingBottom = '18px';
 
 
-        // --- Folder Settings ---
-        containerEl.createEl('h3', { text: 'Exclusions' });
-        new Setting(containerEl)
-            .setName('Excluded Folders')
-            .setDesc('One folder path per line. Notes in these folders will be ignored.')
-            .addTextArea(text => text
-                .setPlaceholder('Templates\nArchive')
-                .setValue(this.plugin.settings.excludedFolders)
-                .onChange(async (value) => {
-                    this.plugin.settings.excludedFolders = value;
-                    await this.plugin.saveSettings();
-                }));
     }
 }

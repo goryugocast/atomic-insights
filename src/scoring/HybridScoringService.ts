@@ -4,7 +4,6 @@ import { IScoringStrategy, ScoringResult } from './ScoringStrategy';
 import { GraphScoreStrategy } from './GraphScoreStrategy';
 import { MetadataScoreStrategy } from './MetadataScoreStrategy';
 import { TimeScoreStrategy } from './TimeScoreStrategy';
-import { buildExclusionFilter } from './exclusions';
 import { computeOtherRatios } from './weights';
 
 export class HybridScoringService {
@@ -24,10 +23,6 @@ export class HybridScoringService {
 
     public calculate(sourcePath: string): any[] {
         // Collect scores from all strategies
-        const isExcluded = buildExclusionFilter(this.settings);
-        if (isExcluded(sourcePath)) {
-            return [];
-        }
         const aggregatedScores: Record<string, number> = {};
         const aggregatedReasons: Record<string, Set<string>> = {};
 
@@ -88,15 +83,12 @@ export class HybridScoringService {
             // Outgoing
             const targets = resolvedLinks[sourcePath];
             if (this.settings.showOutgoingLinks && targets) {
-                Object.keys(targets).forEach(t => {
-                    if (!isExcluded(t)) connectedNodes.add(t);
-                });
+                Object.keys(targets).forEach(t => connectedNodes.add(t));
             }
 
             // Incoming
             if (this.settings.showBacklinks) {
                 for (const potentialSource in resolvedLinks) {
-                    if (isExcluded(potentialSource)) continue;
                     if (resolvedLinks[potentialSource][sourcePath]) {
                         connectedNodes.add(potentialSource);
                     }

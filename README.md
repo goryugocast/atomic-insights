@@ -23,7 +23,7 @@ If the suggestions do not meet your expectations, continue the practice of "reco
 - Suggests related notes using the Adamic Adar index.
 - Optional context signals: filename emoji, YAML frontmatter, and date proximity.
 - Adjustable weights: Graph vs Other, plus per-signal tuning inside Other.
-- Ability to exclude specific folders (e.g., Templates, Archives, Daily Notes) from calculations.
+- Ability to exclude specific folders from Graph (Adamic Adar) calculations.
 - Dedicated sidebar view and a footer view under the current note.
 - Supports native page previews (Cmd/Ctrl + Hover).
 - Click to navigate and drag-and-drop to create wikilinks.
@@ -33,8 +33,8 @@ If the suggestions do not meet your expectations, continue the practice of "reco
 1. Run `Open Atomic Insights View` from the Command Palette.
 2. The view in the right sidebar will update automatically based on your active note.
 3. Click an item to navigate, or drag an item into the editor to create a `[[Wikilink]]`.
-4. Add folder paths (one per line) in the Settings to exclude them from calculations.
-5. Tune Graph vs Other and the internal ratios for Emoji/YAML/Time in Settings.
+4. In Settings, configure `Adamic Adar Score` and `Excluded Folders (Graph Only)` under `1. Graph Topology`.
+5. Tune `Other (Non-Graph) Weight` and the internal ratios for Emoji/YAML/Time in Settings.
 
 ## Development
 

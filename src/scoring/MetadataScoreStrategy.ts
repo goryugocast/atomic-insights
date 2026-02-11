@@ -1,7 +1,6 @@
 import { App, TFile } from 'obsidian';
 import { AtomicInsightsSettings } from '../Settings';
 import { IScoringStrategy, ScoringResult } from './ScoringStrategy';
-import { buildExclusionFilter } from './exclusions';
 
 export class MetadataScoreStrategy implements IScoringStrategy {
     app: App;
@@ -19,10 +18,6 @@ export class MetadataScoreStrategy implements IScoringStrategy {
 
         const enableEmoji = this.settings.enableEmojiScore;
         const enableYaml = this.settings.enableYamlScore;
-        const isExcluded = buildExclusionFilter(this.settings);
-        if (isExcluded(sourcePath)) {
-            return [];
-        }
         const targetKeys = this.settings.metadataKeys
             .split(',')
             .map(k => k.trim())
@@ -44,7 +39,6 @@ export class MetadataScoreStrategy implements IScoringStrategy {
 
         // 1. Build Virtual Graph
         files.forEach((file: TFile) => {
-            if (isExcluded(file.path)) return;
             const cache = this.app.metadataCache.getFileCache(file);
             if (!cache) return;
 

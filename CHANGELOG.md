@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.1] - 2026-02-11
+### Fixed
+- **Exclusion Semantics**: `Excluded Folders` now applies only to Graph (Adamic Adar) calculation. Metadata/Time/Direct-link related notes remain visible.
+- **Excluded Source Notes**: Related notes are no longer empty when the active note itself is in an excluded folder.
+- **Settings Clarity**: Moved `Excluded Folders` into `1. Graph Topology` and clarified the scope in UI and documentation.
+
 ## [0.3.0] - 2026-02-10
 ### Added
 - **Hybrid Scoring**: Combined Graph (Adamic Adar) with context signals (Emoji, YAML, Time) using a weighted hybrid model.
