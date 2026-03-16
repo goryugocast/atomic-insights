@@ -6,6 +6,9 @@ export interface ScoringResult {
     score: number;
     // Optional details for debugging or UI indicators
     reason?: string;
+    details?: {
+        commonNeighbors?: string[];
+    };
 }
 
 export interface IScoringStrategy {

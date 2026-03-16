@@ -2,16 +2,20 @@ import { Plugin, WorkspaceLeaf, addIcon, MarkdownView } from 'obsidian';
 import { AtomicInsightsView, VIEW_TYPE_ATOMIC_INSIGHTS } from './AnalysisView';
 import { DEFAULT_SETTINGS, AtomicInsightsSettings, AtomicInsightsSettingTab } from './Settings';
 import { RelatedNotesView } from './RelatedNotesView';
+import { AtomicInsightsAPI } from './API';
 
 export default class AtomicInsightsPlugin extends Plugin {
     settings: AtomicInsightsSettings;
     relatedNotesView: RelatedNotesView;
+    api: AtomicInsightsAPI;
 
     async onload() {
         console.log('Loading Atomic Insights');
 
         await this.loadSettings();
 
+        this.api = new AtomicInsightsAPI(this);
+        (window as any).AtomicInsights = this.api;
         this.relatedNotesView = new RelatedNotesView(this);
 
         // Custom Icon: Atomic Network

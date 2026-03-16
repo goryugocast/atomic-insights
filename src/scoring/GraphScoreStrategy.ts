@@ -70,9 +70,11 @@ export class GraphScoreStrategy implements IScoringStrategy {
 
                 const targetNeighbors = neighbors[targetNode];
                 let rawScore = 0;
+                const commonNeighbors: string[] = [];
 
                 sourceNeighbors.forEach(w => {
                     if (targetNeighbors.has(w)) {
+                        commonNeighbors.push(w);
                         const degree = degrees[w];
                         if (degree > 1) {
                             rawScore += 1 / Math.log(degree);
@@ -84,7 +86,10 @@ export class GraphScoreStrategy implements IScoringStrategy {
                     results.push({
                         path: targetNode,
                         score: rawScore,
-                        reason: 'graph'
+                        reason: 'graph',
+                        details: {
+                            commonNeighbors
+                        }
                     });
                 }
             }

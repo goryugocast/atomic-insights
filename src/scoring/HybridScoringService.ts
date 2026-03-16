@@ -25,6 +25,7 @@ export class HybridScoringService {
         // Collect scores from all strategies
         const aggregatedScores: Record<string, number> = {};
         const aggregatedReasons: Record<string, Set<string>> = {};
+        const aggregatedDetails: Record<string, any> = {};
 
         const otherRatios = computeOtherRatios(this.settings);
 
@@ -63,6 +64,10 @@ export class HybridScoringService {
                 if (res.reason) {
                     aggregatedReasons[res.path].add(res.reason);
                 }
+                if (res.details) {
+                    if (!aggregatedDetails[res.path]) aggregatedDetails[res.path] = {};
+                    aggregatedDetails[res.path] = { ...aggregatedDetails[res.path], ...res.details };
+                }
             });
         });
 
@@ -70,8 +75,8 @@ export class HybridScoringService {
         let finalResults = Object.entries(aggregatedScores).map(([path, score]) => ({
             path,
             score,
-            commonNeighbors: [] as string[], // Legacy field, might need to populate if needed for UI?
-            reasons: Array.from(aggregatedReasons[path] || [])
+            reasons: Array.from(aggregatedReasons[path] || []),
+            details: aggregatedDetails[path] || {}
         }));
 
         // Include Direct Links (Backlinks/Outgoing) if enabled
@@ -102,8 +107,8 @@ export class HybridScoringService {
                     finalResults.push({
                         path: targetPath,
                         score: 0,
-                        commonNeighbors: [],
-                        reasons: ['link']
+                        reasons: ['link'],
+                        details: {}
                     });
                 }
             });
