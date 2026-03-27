@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.3] - 2026-03-27
+### Added
+- **API Documentation**: Documented the external `window.AtomicInsights` API in both English and Japanese READMEs, including usage examples and error behavior.
+- **API Tests**: Added tests for missing-file handling, successful limited results, and the no-active-note case.
+
+### Changed
+- **API Typing**: Clarified external API response types to make runtime usage and future maintenance easier.
+
 ## [0.3.2] - 2026-03-27
 ### Added
 - **External API**: Added `window.AtomicInsights` for external callers such as Obsidian CLI workflows and automation scripts.

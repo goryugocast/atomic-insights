@@ -1,11 +1,31 @@
 import { MarkdownView } from 'obsidian';
 import AtomicInsightsPlugin from './main';
 import { HybridScoringService } from './scoring/HybridScoringService';
+import { ScoringResult } from './scoring/ScoringStrategy';
 
-interface RelatedNotesOptions {
+export interface RelatedNotesOptions {
     limit?: number;
-    includeContext?: boolean;
 }
+
+export interface RelatedNotesSuccessResponse {
+    status: 'success';
+    source: string;
+    timestamp: string;
+    parameters: {
+        limit: number;
+        appliedWeights: {
+            graph: number;
+        };
+    };
+    results: Array<ScoringResult & { reasons?: string[] }>;
+}
+
+export interface RelatedNotesErrorResponse {
+    status: 'error';
+    message: string;
+}
+
+export type RelatedNotesResponse = RelatedNotesSuccessResponse | RelatedNotesErrorResponse;
 
 export class AtomicInsightsAPI {
     private engine: HybridScoringService;
@@ -17,7 +37,7 @@ export class AtomicInsightsAPI {
     /**
      * 指定されたパスのノートに関連するノートの一覧をスコア順に取得する（非同期）
      */
-    async getRelatedNotes(path: string, options: RelatedNotesOptions = {}): Promise<any> {
+    async getRelatedNotes(path: string, options: RelatedNotesOptions = {}): Promise<RelatedNotesResponse> {
         try {
             const file = this.plugin.app.vault.getFileByPath(path);
             if (!file) {
@@ -56,7 +76,7 @@ export class AtomicInsightsAPI {
     /**
      * 現在アクティブなノートの関連ノートを取得する（非同期、CLI/AI向けショートカット）
      */
-    async getActiveRelatedNotes(options: RelatedNotesOptions = {}): Promise<any> {
+    async getActiveRelatedNotes(options: RelatedNotesOptions = {}): Promise<RelatedNotesResponse> {
         const activeView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
         if (!activeView || !activeView.file) {
             return {

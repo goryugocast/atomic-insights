@@ -36,6 +36,49 @@ Adamic Adar は、こうした「希少な共通点」を重く評価するア�
 4. 設定画面の `1. Graph Topology` で、`Adamic Adar Score` と `Excluded Folders (Graph Only)` を設定します。
 5. 設定画面で `Other (Non-Graph) Weight` と、Other 内（絵文字/YAML/時間）の比率を調整できます。
 
+## 外部API
+
+Atomic Insights は、プラグインの読み込み後に `window.AtomicInsights` として小さなランタイム API も公開します。Obsidian CLI ワークフロー、自動化スクリプト、開発者コンソールでの確認に便利です。
+
+### 利用できるメソッド
+
+- `getRelatedNotes(path, options)` は、指定したファイルパスに対する関連ノート一覧をスコア順で返します。
+- `getActiveRelatedNotes(options)` は、現在アクティブな Markdown ノートに対する関連ノート一覧を返します。
+
+### Options
+
+- `limit` は返却件数の上限です。デフォルトは `20` です。
+
+### 例
+
+```js
+const result = await window.AtomicInsights.getRelatedNotes(
+  "Inbox/My Note.md",
+  { limit: 10 }
+);
+
+if (result.status === "success") {
+  console.table(result.results.map((item) => ({
+    path: item.path,
+    score: item.score,
+    reasons: item.reasons?.join(", ") ?? ""
+  })));
+} else {
+  console.error(result.message);
+}
+```
+
+### エラーハンドリング
+
+対象ファイルが存在しない場合や、アクティブな Markdown ノートがない場合は、次のような構造化されたエラーオブジェクトを返します。
+
+```json
+{
+  "status": "error",
+  "message": "File not found: Inbox/Missing Note.md"
+}
+```
+
 ## 開発
 
 ### ビルド

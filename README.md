@@ -36,6 +36,49 @@ If the suggestions do not meet your expectations, continue the practice of "reco
 4. In Settings, configure `Adamic Adar Score` and `Excluded Folders (Graph Only)` under `1. Graph Topology`.
 5. Tune `Other (Non-Graph) Weight` and the internal ratios for Emoji/YAML/Time in Settings.
 
+## External API
+
+Atomic Insights also exposes a small runtime API on `window.AtomicInsights` after the plugin loads. This is useful for Obsidian CLI workflows, automation scripts, or debugging in the developer console.
+
+### Available methods
+
+- `getRelatedNotes(path, options)` returns ranked related notes for the specified file path.
+- `getActiveRelatedNotes(options)` returns ranked related notes for the currently active markdown note.
+
+### Options
+
+- `limit` limits the number of returned results. Default: `20`
+
+### Example
+
+```js
+const result = await window.AtomicInsights.getRelatedNotes(
+  "Inbox/My Note.md",
+  { limit: 10 }
+);
+
+if (result.status === "success") {
+  console.table(result.results.map((item) => ({
+    path: item.path,
+    score: item.score,
+    reasons: item.reasons?.join(", ") ?? ""
+  })));
+} else {
+  console.error(result.message);
+}
+```
+
+### Error handling
+
+The API returns a structured error object when the target file does not exist or when there is no active markdown note:
+
+```json
+{
+  "status": "error",
+  "message": "File not found: Inbox/Missing Note.md"
+}
+```
+
 ## Development
 
 ### Build
