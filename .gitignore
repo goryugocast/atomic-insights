@@ -12,6 +12,7 @@ yarn-debug.log*
 yarn-error.log*
 OBSIDIAN_PLUGIN_DEV_GUIDE.md
 .agent/
+AGENTS.md
 
 HANDOVER.md
 _ai_plans/

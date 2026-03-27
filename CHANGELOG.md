@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.2] - 2026-03-27
+### Added
+- **External API**: Added `window.AtomicInsights` for external callers such as Obsidian CLI workflows and automation scripts.
+- **Async Related Notes Access**: Added `getRelatedNotes(path, options)` and `getActiveRelatedNotes(options)` for programmatic access to ranked related-note results.
+
+### Fixed
+- **Missing File Handling**: `getRelatedNotes` now returns a structured error response when the target path does not exist instead of failing unexpectedly.
+
 ## [0.3.1] - 2026-02-11
 ### Fixed
 - **Exclusion Semantics**: `Excluded Folders` now applies only to Graph (Adamic Adar) calculation. Metadata/Time/Direct-link related notes remain visible.
