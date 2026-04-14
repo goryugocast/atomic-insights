@@ -123,7 +123,12 @@ export class RelatedNotesRenderer {
 
             itemHeader.addEventListener('click', (e) => {
                 e.preventDefault();
-                this.plugin.app.workspace.openLinkText(res.path, sourcePath);
+                if (e.metaKey || e.ctrlKey) {
+                    const leaf = this.plugin.app.workspace.getLeaf('tab');
+                    leaf.openFile(this.plugin.app.vault.getFileByPath(res.path)!);
+                } else {
+                    this.plugin.app.workspace.openLinkText(res.path, sourcePath);
+                }
             });
 
             // Name
@@ -245,6 +250,12 @@ export class RelatedNotesRenderer {
                             previewContainer.addEventListener('click', async (e) => {
                                 e.stopPropagation();
                                 e.preventDefault();
+
+                                if (e.metaKey || e.ctrlKey) {
+                                    const leaf = this.plugin.app.workspace.getLeaf('tab');
+                                    await leaf.openFile(this.plugin.app.vault.getFileByPath(res.path)!);
+                                    return;
+                                }
 
                                 await this.plugin.app.workspace.openLinkText(res.path, sourcePath);
 
