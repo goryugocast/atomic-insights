@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "rollup --config rollup.config.js -w",
     "build": "rollup --config rollup.config.js --environment BUILD:production",
-    "deploy": "npm run build && cp main.js manifest.json styles.css \"/Users/goryugo/Library/Mobile Documents/iCloud~md~obsidian/Documents/Obsidian_local/.obsidian/plugins/atomic-insights/\"",
+    "deploy": "npm run build",
     "test": "vitest run --config vitest.config.ts",
     "test:watch": "vitest --config vitest.config.ts"
   },
