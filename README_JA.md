@@ -40,6 +40,8 @@ Adamic Adar は、こうした「希少な共通点」を重く評価するア�
 
 Atomic Insights は、プラグインの読み込み後に `window.AtomicInsights` として小さなランタイム API も公開します。Obsidian CLI ワークフロー、自動化スクリプト、開発者コンソールでの確認に便利です。
 
+実際にターミナルから呼ぶ例は [docs/OBSIDIAN_CLI.md](docs/OBSIDIAN_CLI.md) にまとめています。
+
 ### 利用できるメソッド
 
 - `getRelatedNotes(path, options)` は、指定したファイルパスに対する関連ノート一覧をスコア順で返します。

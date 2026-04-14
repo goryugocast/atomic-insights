@@ -40,6 +40,8 @@ If the suggestions do not meet your expectations, continue the practice of "reco
 
 Atomic Insights also exposes a small runtime API on `window.AtomicInsights` after the plugin loads. This is useful for Obsidian CLI workflows, automation scripts, or debugging in the developer console.
 
+For concrete terminal examples, see [docs/OBSIDIAN_CLI.md](docs/OBSIDIAN_CLI.md).
+
 ### Available methods
 
 - `getRelatedNotes(path, options)` returns ranked related notes for the specified file path.

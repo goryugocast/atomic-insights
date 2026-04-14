@@ -299,3 +299,86 @@
     height: 16px;
     opacity: 0.7;
 }
+
+@media (max-width: 520px) {
+    .atomic-insights-setting--stack-mobile {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .atomic-insights-setting--stack-mobile .setting-item-info {
+        flex: 1 1 100%;
+        padding-right: 0;
+    }
+
+    .atomic-insights-setting--stack-mobile .setting-item-control {
+        width: 100%;
+        justify-content: flex-start;
+        margin-top: 8px;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .atomic-insights-setting--stack-mobile .setting-item-control .slider {
+        flex: 1 1 180px;
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+.atomic-insights-excluded-folder-empty {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    padding: 4px 0 4px;
+}
+
+.atomic-insights-excluded-folder-group {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.atomic-insights-excluded-folder-settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.atomic-insights-excluded-folder-row,
+.atomic-insights-excluded-folder-new-row .atomic-insights-excluded-folder-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 32px;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.atomic-insights-excluded-folder-input-wrap {
+    min-width: 0;
+}
+
+.atomic-insights-excluded-folder-input-wrap .search-input-container {
+    width: 100%;
+}
+
+.atomic-insights-excluded-folder-row-action {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 520px) {
+    .atomic-insights-excluded-folder-row,
+    .atomic-insights-excluded-folder-new-row .atomic-insights-excluded-folder-row {
+        grid-template-columns: minmax(0, 1fr) 28px;
+        gap: 6px;
+    }
+
+    .atomic-insights-excluded-folder-row-action {
+        width: 28px;
+        height: 28px;
+    }
+}

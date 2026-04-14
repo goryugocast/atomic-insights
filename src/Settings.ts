@@ -1,5 +1,6 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
+import { AbstractInputSuggest, App, PluginSettingTab, SearchComponent, Setting, TFolder, normalizePath, setIcon } from 'obsidian';
 import AtomicInsightsPlugin from './main';
+import { normalizeFolderRule, parseExcludedFolders } from './scoring/exclusions';
 
 export interface AtomicInsightsSettings {
     excludedFolders: string;
@@ -55,12 +56,151 @@ export const DEFAULT_SETTINGS: AtomicInsightsSettings = {
     weightOther: 1.0,
 };
 
+class FolderPathSuggest extends AbstractInputSuggest<TFolder> {
+    constructor(app: App, inputEl: HTMLInputElement) {
+        super(app, inputEl);
+    }
+
+    protected getSuggestions(query: string): TFolder[] {
+        const normalizedQuery = normalizeFolderRule(query).toLowerCase();
+        const folders = this.app.vault.getAllLoadedFiles()
+            .filter((file): file is TFolder => file instanceof TFolder)
+            .filter((folder) => folder.path.length > 0)
+            .sort((a, b) => a.path.localeCompare(b.path, 'ja'));
+
+        if (!normalizedQuery) {
+            return folders.slice(0, 100);
+        }
+
+        return folders
+            .filter((folder) => folder.path.toLowerCase().includes(normalizedQuery))
+            .slice(0, 100);
+    }
+
+    renderSuggestion(folder: TFolder, el: HTMLElement): void {
+        el.setText(folder.path);
+    }
+
+    selectSuggestion(folder: TFolder, _evt: MouseEvent | KeyboardEvent): void {
+        this.setValue(folder.path);
+    }
+
+    getFirstSuggestion(query: string): TFolder | null {
+        const suggestions = this.getSuggestions(query);
+        if (!Array.isArray(suggestions) || suggestions.length === 0) {
+            return null;
+        }
+        return suggestions[0];
+    }
+}
+
 export class AtomicInsightsSettingTab extends PluginSettingTab {
     plugin: AtomicInsightsPlugin;
 
     constructor(app: App, plugin: AtomicInsightsPlugin) {
         super(app, plugin);
         this.plugin = plugin;
+    }
+
+    private resolveCommittedFolderPath(query: string, folderSuggest: FolderPathSuggest): string | null {
+        const normalized = normalizePath(normalizeFolderRule(query));
+        if (!normalized) {
+            return null;
+        }
+
+        const exact = this.app.vault.getFolderByPath(normalized);
+        if (exact) {
+            return exact.path;
+        }
+
+        const first = folderSuggest.getFirstSuggestion(query);
+        if (!first) {
+            return null;
+        }
+
+        const lowerQuery = normalized.toLowerCase();
+        if (!first.path.toLowerCase().startsWith(lowerQuery)) {
+            return null;
+        }
+
+        return first.path;
+    }
+
+    private async saveExcludedFolders(folders: string[]): Promise<void> {
+        this.plugin.settings.excludedFolders = parseExcludedFolders(folders.join('\n')).join('\n');
+        await this.plugin.saveSettings();
+    }
+
+    private renderExcludedFolderRow(containerEl: HTMLElement, value: string, options: {
+        placeholder: string;
+        onCommit: (resolvedPath: string) => Promise<void>;
+        onRemove?: () => Promise<void>;
+        addMode?: boolean;
+    }): void {
+        let folderDraft = value;
+
+        const rowEl = containerEl.createDiv({ cls: 'atomic-insights-excluded-folder-row' });
+        const inputWrapEl = rowEl.createDiv({ cls: 'atomic-insights-excluded-folder-input-wrap' });
+        const search = new SearchComponent(inputWrapEl);
+        search.setPlaceholder(options.placeholder).setValue(folderDraft);
+
+        const folderSuggest = new FolderPathSuggest(this.app, search.inputEl);
+        const commitDraft = async (fallbackValue?: string) => {
+            const currentValue = fallbackValue ?? folderDraft;
+            const resolved = this.resolveCommittedFolderPath(currentValue, folderSuggest);
+            if (!resolved) {
+                if (!options.addMode) {
+                    search.setValue(value);
+                    folderDraft = value;
+                }
+                return;
+            }
+
+            folderDraft = resolved;
+            search.setValue(resolved);
+            await options.onCommit(resolved);
+        };
+
+        folderSuggest.onSelect((folder) => {
+            folderDraft = folder.path;
+            search.setValue(folder.path);
+            void commitDraft(folder.path);
+        });
+
+        search.onChange((nextValue) => {
+            folderDraft = nextValue;
+        });
+
+        search.inputEl.addEventListener('keydown', (ev) => {
+            if (ev.isComposing || ev.key !== 'Enter') return;
+            ev.preventDefault();
+            folderSuggest.close();
+            void commitDraft();
+        });
+
+        search.inputEl.addEventListener('blur', () => {
+            void commitDraft();
+        });
+
+        if (options.onRemove) {
+            const removeButton = rowEl.createEl('button', {
+                cls: 'clickable-icon atomic-insights-excluded-folder-row-action',
+                attr: { 'aria-label': `Remove ${value}` }
+            });
+            setIcon(removeButton, 'trash');
+            removeButton.addEventListener('click', () => {
+                void options.onRemove?.();
+            });
+        } else {
+            const addButton = rowEl.createEl('button', {
+                cls: 'clickable-icon atomic-insights-excluded-folder-row-action',
+                attr: { 'aria-label': 'Add excluded folder' }
+            });
+            setIcon(addButton, 'plus');
+            addButton.addEventListener('click', () => {
+                void commitDraft();
+            });
+        }
     }
 
     display(): void {
@@ -116,7 +256,7 @@ export class AtomicInsightsSettingTab extends PluginSettingTab {
 
         // 1. Graph Topology
         containerEl.createEl('h4', { text: '1. Graph Topology (Link Structure)' });
-        new Setting(containerEl)
+        const graphScoreSetting = new Setting(containerEl)
             .setName('Adamic Adar Score')
             .setDesc('Score based on shared connections. Highly weighted for "structurally" related notes.')
             .addToggle(toggle => toggle
@@ -134,23 +274,55 @@ export class AtomicInsightsSettingTab extends PluginSettingTab {
                     this.plugin.settings.weightGraph = value;
                     await this.plugin.saveSettings();
                 }));
+        graphScoreSetting.settingEl.addClass('atomic-insights-setting--stack-mobile');
 
         const excludedFolders = new Setting(containerEl)
             .setName('Excluded Folders (Graph Only)')
-            .setDesc('One folder path per line. Applied only to Graph (Adamic Adar) calculation.')
-            .addTextArea(text => text
-                .setPlaceholder('Templates\nArchive')
-                .setValue(this.plugin.settings.excludedFolders)
-                .onChange(async (value) => {
-                    this.plugin.settings.excludedFolders = value;
-                    await this.plugin.saveSettings();
-                }));
+            .setDesc('Leading "/" is ignored. Applied only to Graph (Adamic Adar) calculation.');
         excludedFolders.settingEl.style.borderTop = 'none';
         excludedFolders.settingEl.style.paddingTop = '0';
-        excludedFolders.settingEl.style.paddingBottom = '18px';
+        excludedFolders.settingEl.style.paddingBottom = '10px';
+        excludedFolders.settingEl.addClass('atomic-insights-setting--excluded-folders');
+
+        const currentExcludedFolders = parseExcludedFolders(this.plugin.settings.excludedFolders);
+        const excludedFoldersGroup = excludedFolders.controlEl.createDiv({ cls: 'atomic-insights-excluded-folder-group' });
+        const excludedFoldersList = excludedFoldersGroup.createDiv({ cls: 'atomic-insights-excluded-folder-settings-list' });
+        if (currentExcludedFolders.length === 0) {
+            excludedFoldersList.createDiv({
+                cls: 'atomic-insights-excluded-folder-empty',
+                text: 'No folders excluded.'
+            });
+        } else {
+            currentExcludedFolders.forEach((folder, index) => {
+                this.renderExcludedFolderRow(excludedFoldersList, folder, {
+                    placeholder: 'notes/daily',
+                    onCommit: async (resolvedPath) => {
+                        const updated = [...currentExcludedFolders];
+                        updated[index] = resolvedPath;
+                        await this.saveExcludedFolders(updated);
+                        this.display();
+                    },
+                    onRemove: async () => {
+                        const updated = currentExcludedFolders.filter((_, folderIndex) => folderIndex !== index);
+                        await this.saveExcludedFolders(updated);
+                        this.display();
+                    }
+                });
+            });
+        }
+
+        const newFolderRowWrap = excludedFoldersGroup.createDiv({ cls: 'atomic-insights-excluded-folder-new-row' });
+        this.renderExcludedFolderRow(newFolderRowWrap, '', {
+            placeholder: 'Search folders...',
+            addMode: true,
+            onCommit: async (resolvedPath) => {
+                await this.saveExcludedFolders([...currentExcludedFolders, resolvedPath]);
+                this.display();
+            }
+        });
 
         // Overall weight for non-graph signals
-        new Setting(containerEl)
+        const otherWeightSetting = new Setting(containerEl)
             .setName('Other (Non-Graph) Weight')
             .setDesc('Overall impact of non-graph signals (Emoji, YAML, Time) relative to Graph.')
             .addSlider(slider => slider
@@ -161,6 +333,7 @@ export class AtomicInsightsSettingTab extends PluginSettingTab {
                     this.plugin.settings.weightOther = value;
                     await this.plugin.saveSettings();
                 }));
+        otherWeightSetting.settingEl.addClass('atomic-insights-setting--stack-mobile');
 
         // 2. Metadata Context
         containerEl.createEl('h4', { text: '2. Metadata Context (Virtual Nodes)' });
@@ -193,6 +366,7 @@ export class AtomicInsightsSettingTab extends PluginSettingTab {
                     this.plugin.settings.weightEmoji = value;
                     await this.plugin.saveSettings();
                 }));
+        emojiSetting.settingEl.addClass('atomic-insights-setting--stack-mobile');
         emojiSetting.settingEl.style.borderTop = 'none';
         emojiSetting.settingEl.style.paddingTop = '0';
         emojiSetting.settingEl.style.paddingBottom = '12px';
@@ -215,6 +389,7 @@ export class AtomicInsightsSettingTab extends PluginSettingTab {
                     this.plugin.settings.weightYaml = value;
                     await this.plugin.saveSettings();
                 }));
+        yamlSetting.settingEl.addClass('atomic-insights-setting--stack-mobile');
         yamlSetting.settingEl.style.borderTop = 'none';
         yamlSetting.settingEl.style.paddingTop = '0';
         yamlSetting.settingEl.style.paddingBottom = '12px';
@@ -235,7 +410,7 @@ export class AtomicInsightsSettingTab extends PluginSettingTab {
 
         // 3. Temporal Context
         containerEl.createEl('h4', { text: '3. Temporal Context (Time Decay)' });
-        new Setting(containerEl)
+        const timeScoreSetting = new Setting(containerEl)
             .setName('Time Decay Score')
             .setDesc('Score based on date proximity (from filename). Relative weight inside "Other".')
             .addToggle(toggle => toggle
@@ -253,6 +428,7 @@ export class AtomicInsightsSettingTab extends PluginSettingTab {
                     this.plugin.settings.weightTime = value;
                     await this.plugin.saveSettings();
                 }));
+        timeScoreSetting.settingEl.addClass('atomic-insights-setting--stack-mobile');
 
         const timeDetails = new Setting(containerEl)
             .setName('Time Window (Half-life)')

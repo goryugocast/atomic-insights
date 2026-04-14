@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parseDateFromPath } from '../src/scoring/timeParsing';
-import { buildExclusionFilter } from '../src/scoring/exclusions';
+import { buildExclusionFilter, parseExcludedFolders } from '../src/scoring/exclusions';
 import { computeOtherRatios } from '../src/scoring/weights';
 import { DEFAULT_SETTINGS } from '../src/Settings';
 
@@ -31,6 +31,28 @@ describe('exclusions', () => {
         expect(isExcluded('Inbox/Note.md')).toBe(true);
         expect(isExcluded('Archive/Old.md')).toBe(true);
         expect(isExcluded('Notes/Ok.md')).toBe(false);
+    });
+
+    it('normalizes leading and trailing slashes in excluded folders', () => {
+        const isExcluded = buildExclusionFilter({
+            ...DEFAULT_SETTINGS,
+            excludedFolders: '/notes/daily/\n/Practice'
+        });
+        expect(isExcluded('notes/daily/2026-03-28.md')).toBe(true);
+        expect(isExcluded('Practice/Session.md')).toBe(true);
+    });
+
+    it('matches folder boundaries only', () => {
+        const isExcluded = buildExclusionFilter({
+            ...DEFAULT_SETTINGS,
+            excludedFolders: 'note'
+        });
+        expect(isExcluded('note/file.md')).toBe(true);
+        expect(isExcluded('notes/file.md')).toBe(false);
+    });
+
+    it('deduplicates and normalizes excluded folder input', () => {
+        expect(parseExcludedFolders('/notes/daily/\nnotes/daily\n')).toEqual(['notes/daily']);
     });
 });
 
