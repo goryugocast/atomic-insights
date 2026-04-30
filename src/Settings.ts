@@ -285,8 +285,8 @@ export class AtomicInsightsSettingTab extends PluginSettingTab {
         graphScoreSetting.settingEl.addClass('atomic-insights-setting--stack-mobile');
 
         const excludedFolders = new Setting(containerEl)
-            .setName('Excluded Folders (Graph Only)')
-            .setDesc('Leading "/" is ignored. Applied only to Graph (Adamic Adar) calculation.');
+            .setName('Excluded Folders')
+            .setDesc('Leading "/" is ignored. Notes under these folders are removed from the graph and never appear as related results.');
         excludedFolders.settingEl.style.borderTop = 'none';
         excludedFolders.settingEl.style.paddingTop = '0';
         excludedFolders.settingEl.style.paddingBottom = '10px';

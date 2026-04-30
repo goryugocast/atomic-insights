@@ -5,6 +5,7 @@ import { GraphScoreStrategy } from './GraphScoreStrategy';
 import { MetadataScoreStrategy } from './MetadataScoreStrategy';
 import { TimeScoreStrategy } from './TimeScoreStrategy';
 import { EditTimeScoreStrategy } from './EditTimeScoreStrategy';
+import { buildExclusionFilter } from './exclusions';
 import { computeOtherRatios } from './weights';
 
 export class HybridScoringService {
@@ -28,6 +29,9 @@ export class HybridScoringService {
         const aggregatedScores: Record<string, number> = {};
         const aggregatedReasons: Record<string, Set<string>> = {};
         const aggregatedDetails: Record<string, any> = {};
+
+        const isExcluded = buildExclusionFilter(this.settings);
+        const isExcludedTarget = (path: string) => path !== sourcePath && isExcluded(path);
 
         const otherRatios = computeOtherRatios(this.settings);
 
@@ -56,6 +60,9 @@ export class HybridScoringService {
         this.strategies.forEach(strategy => {
             const results = strategy.calculate(sourcePath);
             results.forEach(res => {
+                if (isExcludedTarget(res.path)) {
+                    return;
+                }
                 const weight = weightForReason(res.reason);
                 if (weight === 0) {
                     return;
@@ -108,6 +115,7 @@ export class HybridScoringService {
             // Add missing direct links with score 0 if not present
             connectedNodes.forEach(targetPath => {
                 if (targetPath === sourcePath) return; // Self
+                if (isExcludedTarget(targetPath)) return;
                 if (!aggregatedScores[targetPath]) {
                     finalResults.push({
                         path: targetPath,
