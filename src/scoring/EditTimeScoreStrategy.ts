@@ -1,6 +1,7 @@
 import { App, TFile } from 'obsidian';
 import { AtomicInsightsSettings } from '../Settings';
 import { IScoringStrategy, ScoringResult } from './ScoringStrategy';
+import { buildExclusionFilter } from './exclusions';
 
 function getDailyNotesFolder(app: App): string | null {
     const internalPlugins = (app as any).internalPlugins;
@@ -43,11 +44,14 @@ export class EditTimeScoreStrategy implements IScoringStrategy {
         if (!(halfLifeHours > 0)) return [];
         const lambda = Math.LN2 / (halfLifeHours * 60 * 60 * 1000);
 
+        const isExcluded = buildExclusionFilter(this.settings);
+
         const results: ScoringResult[] = [];
         const files = this.app.vault.getMarkdownFiles();
 
         files.forEach((file) => {
             if (file.path === sourcePath) return;
+            if (isExcluded(file.path)) return;
 
             const targetMtime = file.stat.mtime;
             if (!targetMtime) return;

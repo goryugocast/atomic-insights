@@ -286,7 +286,7 @@ export class AtomicInsightsSettingTab extends PluginSettingTab {
 
         const excludedFolders = new Setting(containerEl)
             .setName('Excluded Folders')
-            .setDesc('Leading "/" is ignored. Notes under these folders are removed from the graph and never appear as related results.');
+            .setDesc('Leading "/" is ignored. Applied to Graph (Adamic Adar) and Edit Time scoring. Time (date proximity), Metadata, and explicit links are not affected — exclusion is per-logic by design.');
         excludedFolders.settingEl.style.borderTop = 'none';
         excludedFolders.settingEl.style.paddingTop = '0';
         excludedFolders.settingEl.style.paddingBottom = '10px';
