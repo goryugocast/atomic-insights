@@ -21,9 +21,9 @@ Adamic Adar は、こうした「希少な共通点」を重く評価するア�
 ## 主な機能
 
 - Adamic Adar アルゴリズムによる関連ノートの計算
-- 絵文字（ファイル名）、YAML frontmatter、日付近接による文脈スコア
-- Graph vs Other の調整と、Other 内（絵文字/YAML/時間）の比率調整
-- 指定したフォルダを Graph（Adamic Adar）計算のみから除外する機能
+- 絵文字（ファイル名）、YAML frontmatter、日付近接、編集時刻近接（デイリーノート時のみ）による文脈スコア
+- Graph vs Other の調整と、Other 内（絵文字/YAML/時間/編集時刻）の比率調整
+- 指定したフォルダを除外する機能（**ロジック単位で意味が変わる**。詳細は [docs/SCORING.md](docs/SCORING.md)）
 - サイドバー表示とノート下部のフッター表示
 - リンクプレビュー（Cmd/Ctrl + ホバー）への対応
 - クリックによるノート移動およびドラッグ＆ドロップによるリンク作成
@@ -33,8 +33,8 @@ Adamic Adar は、こうした「希少な共通点」を重く評価するア�
 1. コマンドパレットから Open Atomic Insights View を実行します。
 2. 右サイドバーに表示されるビューが、現在開いているノートに合わせて自動更新されます。
 3. リスト内の項目をクリックして移動、またはエディタにドラッグしてリンクを作成できます。
-4. 設定画面の `1. Graph Topology` で、`Adamic Adar Score` と `Excluded Folders (Graph Only)` を設定します。
-5. 設定画面で `Other (Non-Graph) Weight` と、Other 内（絵文字/YAML/時間）の比率を調整できます。
+4. 設定画面の `1. Graph Topology` で、`Adamic Adar Score` と `Excluded Folders` を設定します。Excluded Folders はロジックごとに適用範囲が異なります（詳細は [docs/SCORING.md](docs/SCORING.md)）。
+5. 設定画面で `Other (Non-Graph) Weight` と、Other 内（絵文字/YAML/時間/編集時刻）の比率を調整できます。
 
 ## 外部API
 
