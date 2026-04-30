@@ -62,6 +62,7 @@ describe('other weight ratios', () => {
             ...DEFAULT_SETTINGS,
             enableMetadataScore: false,
             enableTimeScore: true,
+            enableEditTimeScore: false,
             weightOther: 2,
             weightTime: 3,
             weightEmoji: 10,
@@ -71,5 +72,6 @@ describe('other weight ratios', () => {
         expect(ratios.emoji).toBe(0);
         expect(ratios.yaml).toBe(0);
         expect(ratios.time).toBe(2);
+        expect(ratios.editTime).toBe(0);
     });
 });

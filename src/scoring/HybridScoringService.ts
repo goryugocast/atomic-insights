@@ -4,6 +4,7 @@ import { IScoringStrategy, ScoringResult } from './ScoringStrategy';
 import { GraphScoreStrategy } from './GraphScoreStrategy';
 import { MetadataScoreStrategy } from './MetadataScoreStrategy';
 import { TimeScoreStrategy } from './TimeScoreStrategy';
+import { EditTimeScoreStrategy } from './EditTimeScoreStrategy';
 import { computeOtherRatios } from './weights';
 
 export class HybridScoringService {
@@ -17,7 +18,8 @@ export class HybridScoringService {
         this.strategies = [
             new GraphScoreStrategy(app, settings),
             new MetadataScoreStrategy(app, settings),
-            new TimeScoreStrategy(app, settings)
+            new TimeScoreStrategy(app, settings),
+            new EditTimeScoreStrategy(app, settings)
         ];
     }
 
@@ -44,6 +46,9 @@ export class HybridScoringService {
             }
             if (reason === 'time') {
                 return otherRatios.time;
+            }
+            if (reason === 'edit-time') {
+                return otherRatios.editTime;
             }
             return 0;
         };

@@ -26,6 +26,10 @@ export interface AtomicInsightsSettings {
     weightTime: number;
     timeDecayDays: number;
 
+    enableEditTimeScore: boolean;
+    weightEditTime: number;
+    editTimeDecayHours: number;
+
     weightOther: number;
 }
 
@@ -52,6 +56,10 @@ export const DEFAULT_SETTINGS: AtomicInsightsSettings = {
     enableTimeScore: true,
     weightTime: 1.0,
     timeDecayDays: 28,
+
+    enableEditTimeScore: true,
+    weightEditTime: 1.0,
+    editTimeDecayHours: 24,
 
     weightOther: 1.0,
 };
@@ -447,6 +455,43 @@ export class AtomicInsightsSettingTab extends PluginSettingTab {
         timeDetails.settingEl.style.paddingTop = '0';
         timeDetails.settingEl.style.paddingBottom = '18px';
 
+        // 4. Edit Time Co-occurrence (Daily-only)
+        containerEl.createEl('h4', { text: '4. Edit Time Co-occurrence (Daily notes only)' });
+        const editTimeScoreSetting = new Setting(containerEl)
+            .setName('Edit Time Score')
+            .setDesc('When viewing a daily note, surface other notes whose mtime is close to the daily note\'s mtime. Daily folder is detected from Obsidian\'s Daily Notes core plugin.')
+            .addToggle(toggle => toggle
+                .setTooltip('Enable/Disable Edit Time Scoring')
+                .setValue(this.plugin.settings.enableEditTimeScore)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableEditTimeScore = value;
+                    await this.plugin.saveSettings();
+                }))
+            .addSlider(slider => slider
+                .setLimits(0.1, 3.0, 0.1)
+                .setValue(this.plugin.settings.weightEditTime)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.plugin.settings.weightEditTime = value;
+                    await this.plugin.saveSettings();
+                }));
+        editTimeScoreSetting.settingEl.addClass('atomic-insights-setting--stack-mobile');
 
+        const editTimeDetails = new Setting(containerEl)
+            .setName('Edit Time Window (Half-life)')
+            .setDesc('Hours until the score decays to half. Default: 24 hours. At 24h=0.5, 48h=0.25, 72h≈0.13.')
+            .addText(text => text
+                .setPlaceholder('24')
+                .setValue(String(this.plugin.settings.editTimeDecayHours))
+                .onChange(async (value) => {
+                    const hours = parseInt(value);
+                    if (!isNaN(hours) && hours > 0) {
+                        this.plugin.settings.editTimeDecayHours = hours;
+                        await this.plugin.saveSettings();
+                    }
+                }));
+        editTimeDetails.settingEl.style.borderTop = 'none';
+        editTimeDetails.settingEl.style.paddingTop = '0';
+        editTimeDetails.settingEl.style.paddingBottom = '18px';
     }
 }
