@@ -36,6 +36,8 @@ export class AtomicInsightsAPI {
 
     /**
      * 指定されたパスのノートに関連するノートの一覧をスコア順に取得する（非同期）
+     * Uses calculateAsync() to yield to the event loop during heavy computation,
+     * preventing CDP/CLI timeout issues.
      */
     async getRelatedNotes(path: string, options: RelatedNotesOptions = {}): Promise<RelatedNotesResponse> {
         try {
@@ -48,8 +50,8 @@ export class AtomicInsightsAPI {
             }
 
             const limit = options.limit ?? 20;
-            const results = this.engine.calculate(path);
-            
+            const results = await this.engine.calculateAsync(path);
+
             const limitedResults = results.slice(0, limit);
 
             return {
@@ -60,7 +62,6 @@ export class AtomicInsightsAPI {
                     limit,
                     appliedWeights: {
                         graph: this.plugin.settings.weightGraph,
-                        // 他の重み付けも必要に応じて追加
                     }
                 },
                 results: limitedResults

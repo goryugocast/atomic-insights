@@ -10,6 +10,9 @@ vi.mock('../src/scoring/HybridScoringService', () => {
                     { path: `${path}::b`, score: 1, reasons: ['time'] }
                 ];
             }
+            async calculateAsync(path: string) {
+                return this.calculate(path);
+            }
         }
     };
 });

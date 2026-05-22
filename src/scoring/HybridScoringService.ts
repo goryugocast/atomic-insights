@@ -5,7 +5,14 @@ import { GraphScoreStrategy } from './GraphScoreStrategy';
 import { MetadataScoreStrategy } from './MetadataScoreStrategy';
 import { TimeScoreStrategy } from './TimeScoreStrategy';
 import { EditTimeScoreStrategy } from './EditTimeScoreStrategy';
-import { computeOtherRatios } from './weights';
+import { computeOtherRatios, OtherWeightRatios } from './weights';
+
+export interface AggregatedResult {
+    path: string;
+    score: number;
+    reasons: string[];
+    details: Record<string, unknown>;
+}
 
 export class HybridScoringService {
     app: App;
@@ -23,60 +30,82 @@ export class HybridScoringService {
         ];
     }
 
-    public calculate(sourcePath: string): any[] {
-        // Collect scores from all strategies
+    private _weightForReason(reason: string | undefined, otherRatios: OtherWeightRatios): number {
+        if (reason === 'graph') return this.settings.weightGraph;
+        if (otherRatios.total <= 0) return 0;
+        if (reason === 'emoji') return otherRatios.emoji;
+        if (reason === 'yaml') return otherRatios.yaml;
+        if (reason === 'time') return otherRatios.time;
+        if (reason === 'edit-time') return otherRatios.editTime;
+        return 0;
+    }
+
+    private _aggregate(
+        results: ScoringResult[],
+        otherRatios: OtherWeightRatios,
+        aggregatedScores: Record<string, number>,
+        aggregatedReasons: Record<string, Set<string>>,
+        aggregatedDetails: Record<string, Record<string, unknown>>
+    ): void {
+        results.forEach(res => {
+            const weight = this._weightForReason(res.reason, otherRatios);
+            if (weight === 0) return;
+            const weightedScore = res.score * weight;
+            if (!aggregatedScores[res.path]) {
+                aggregatedScores[res.path] = 0;
+                aggregatedReasons[res.path] = new Set();
+            }
+            aggregatedScores[res.path] += weightedScore;
+            if (res.reason) {
+                aggregatedReasons[res.path].add(res.reason);
+            }
+            if (res.details) {
+                if (!aggregatedDetails[res.path]) aggregatedDetails[res.path] = {};
+                aggregatedDetails[res.path] = { ...aggregatedDetails[res.path], ...res.details };
+            }
+        });
+    }
+
+    public calculate(sourcePath: string): AggregatedResult[] {
         const aggregatedScores: Record<string, number> = {};
         const aggregatedReasons: Record<string, Set<string>> = {};
-        const aggregatedDetails: Record<string, any> = {};
-
+        const aggregatedDetails: Record<string, Record<string, unknown>> = {};
         const otherRatios = computeOtherRatios(this.settings);
-
-        const weightForReason = (reason?: string) => {
-            if (reason === 'graph') {
-                return this.settings.weightGraph;
-            }
-            if (otherRatios.total <= 0) {
-                return 0;
-            }
-            if (reason === 'emoji') {
-                return otherRatios.emoji;
-            }
-            if (reason === 'yaml') {
-                return otherRatios.yaml;
-            }
-            if (reason === 'time') {
-                return otherRatios.time;
-            }
-            if (reason === 'edit-time') {
-                return otherRatios.editTime;
-            }
-            return 0;
-        };
 
         this.strategies.forEach(strategy => {
             const results = strategy.calculate(sourcePath);
-            results.forEach(res => {
-                const weight = weightForReason(res.reason);
-                if (weight === 0) {
-                    return;
-                }
-                const weightedScore = res.score * weight;
-                if (!aggregatedScores[res.path]) {
-                    aggregatedScores[res.path] = 0;
-                    aggregatedReasons[res.path] = new Set();
-                }
-                aggregatedScores[res.path] += weightedScore;
-                if (res.reason) {
-                    aggregatedReasons[res.path].add(res.reason);
-                }
-                if (res.details) {
-                    if (!aggregatedDetails[res.path]) aggregatedDetails[res.path] = {};
-                    aggregatedDetails[res.path] = { ...aggregatedDetails[res.path], ...res.details };
-                }
-            });
+            this._aggregate(results, otherRatios, aggregatedScores, aggregatedReasons, aggregatedDetails);
         });
 
-        // Convert to array
+        return this._finalize(sourcePath, aggregatedScores, aggregatedReasons, aggregatedDetails);
+    }
+
+    /**
+     * Async version of calculate() that yields to the event loop during heavy computation.
+     * Use this for CDP/CLI callers to prevent UI thread blocking.
+     */
+    public async calculateAsync(sourcePath: string): Promise<AggregatedResult[]> {
+        const aggregatedScores: Record<string, number> = {};
+        const aggregatedReasons: Record<string, Set<string>> = {};
+        const aggregatedDetails: Record<string, Record<string, unknown>> = {};
+        const otherRatios = computeOtherRatios(this.settings);
+
+        for (const strategy of this.strategies) {
+            const results = strategy.calculateAsync
+                ? await strategy.calculateAsync(sourcePath)
+                : strategy.calculate(sourcePath);
+            this._aggregate(results, otherRatios, aggregatedScores, aggregatedReasons, aggregatedDetails);
+        }
+
+        return this._finalize(sourcePath, aggregatedScores, aggregatedReasons, aggregatedDetails);
+    }
+
+    private _finalize(
+        sourcePath: string,
+        aggregatedScores: Record<string, number>,
+        aggregatedReasons: Record<string, Set<string>>,
+        aggregatedDetails: Record<string, Record<string, unknown>>
+    ): AggregatedResult[] {
         let finalResults = Object.entries(aggregatedScores).map(([path, score]) => ({
             path,
             score,
@@ -84,19 +113,15 @@ export class HybridScoringService {
             details: aggregatedDetails[path] || {}
         }));
 
-        // Include Direct Links (Backlinks/Outgoing) if enabled
-        // Logic copied/adapted from legacy AdamicAdar to ensure basic links appear even if score is 0
         if (this.settings.showBacklinks || this.settings.showOutgoingLinks) {
             const { resolvedLinks } = this.app.metadataCache;
             const connectedNodes = new Set<string>();
 
-            // Outgoing
             const targets = resolvedLinks[sourcePath];
             if (this.settings.showOutgoingLinks && targets) {
                 Object.keys(targets).forEach(t => connectedNodes.add(t));
             }
 
-            // Incoming
             if (this.settings.showBacklinks) {
                 for (const potentialSource in resolvedLinks) {
                     if (resolvedLinks[potentialSource][sourcePath]) {
@@ -105,9 +130,8 @@ export class HybridScoringService {
                 }
             }
 
-            // Add missing direct links with score 0 if not present
             connectedNodes.forEach(targetPath => {
-                if (targetPath === sourcePath) return; // Self
+                if (targetPath === sourcePath) return;
                 if (!aggregatedScores[targetPath]) {
                     finalResults.push({
                         path: targetPath,
@@ -119,7 +143,6 @@ export class HybridScoringService {
             });
         }
 
-        // Sort
         return finalResults.sort((a, b) => {
             if (b.score !== a.score) {
                 return b.score - a.score;
