@@ -8,22 +8,27 @@
     "build": "rollup --config rollup.config.js --environment BUILD:production",
     "deploy": "npm run build",
     "test": "vitest run --config vitest.config.ts",
-    "test:watch": "vitest --config vitest.config.ts"
+    "test:watch": "vitest --config vitest.config.ts",
+    "lint": "eslint \"src/**/*.ts\""
   },
   "keywords": [],
   "author": "goryugo",
   "license": "MIT",
   "devDependencies": {
+    "@eslint-community/eslint-plugin-eslint-comments": "^4.7.1",
     "@rollup/plugin-commonjs": "^18.0.0",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^11.2.1",
     "@rollup/plugin-typescript": "^8.3.0",
     "@types/node": "^20.11.0",
+    "@typescript-eslint/eslint-plugin": "^8.59.4",
+    "@typescript-eslint/parser": "^8.59.4",
+    "eslint": "^8.57.1",
+    "eslint-plugin-obsidianmd": "^0.1.9",
     "obsidian": "latest",
     "rollup": "^2.58.3",
     "tslib": "^2.3.1",
     "typescript": "^5.3.3",
     "vitest": "^1.6.0"
-  },
-  "dependencies": {}
+  }
 }
