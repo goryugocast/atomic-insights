@@ -3,8 +3,19 @@ import { AtomicInsightsSettings } from '../Settings';
 import { IScoringStrategy, ScoringResult } from './ScoringStrategy';
 import { buildExclusionFilter } from './exclusions';
 
+interface InternalPluginInstance {
+    options?: { folder?: string };
+}
+interface InternalPlugin {
+    enabled?: boolean;
+    instance?: InternalPluginInstance;
+}
+interface AppWithInternalPlugins extends App {
+    internalPlugins?: { plugins?: Record<string, InternalPlugin> };
+}
+
 function getDailyNotesFolder(app: App): string | null {
-    const internalPlugins = (app as any).internalPlugins;
+    const internalPlugins = (app as AppWithInternalPlugins).internalPlugins;
     const dailyNotes = internalPlugins?.plugins?.['daily-notes'];
     if (!dailyNotes?.enabled) return null;
     const folder = dailyNotes.instance?.options?.folder;

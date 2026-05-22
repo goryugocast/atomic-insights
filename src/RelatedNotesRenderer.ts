@@ -78,7 +78,7 @@ export class RelatedNotesRenderer {
         // Show top 20 (Reduced from 50 for performance with context expansion)
         const topResults = results.slice(0, 20);
 
-        topResults.forEach((res: any) => {
+        topResults.forEach((res: { path: string; score: number; reasons?: string[]; details?: Record<string, unknown> }) => {
             const item = listContainer.createDiv({ cls: 'atomic-insights-item' });
 
             const displayName = this.plugin.settings.showFolderNames
@@ -125,9 +125,10 @@ export class RelatedNotesRenderer {
                 e.preventDefault();
                 if (e.metaKey || e.ctrlKey) {
                     const leaf = this.plugin.app.workspace.getLeaf('tab');
-                    leaf.openFile(this.plugin.app.vault.getFileByPath(res.path)!);
+                    const targetFile = this.plugin.app.vault.getFileByPath(res.path);
+                    if (targetFile) void leaf.openFile(targetFile);
                 } else {
-                    this.plugin.app.workspace.openLinkText(res.path, sourcePath);
+                    void this.plugin.app.workspace.openLinkText(res.path, sourcePath);
                 }
             });
 
@@ -235,9 +236,9 @@ export class RelatedNotesRenderer {
 
                         if (textToShow) {
                             if (token !== this.renderToken) return;
-                            import('obsidian').then(({ MarkdownRenderer }) => {
+                            void import('obsidian').then(({ MarkdownRenderer }) => {
                                 if (token !== this.renderToken) return;
-                                MarkdownRenderer.render(
+                                void MarkdownRenderer.render(
                                     this.plugin.app,
                                     textToShow,
                                     previewContainer,
@@ -253,7 +254,7 @@ export class RelatedNotesRenderer {
 
                                 if (e.metaKey || e.ctrlKey) {
                                     const leaf = this.plugin.app.workspace.getLeaf('tab');
-                                    await leaf.openFile(this.plugin.app.vault.getFileByPath(res.path)!);
+                                    await leaf.openFile(this.plugin.app.vault.getFileByPath(res.path));
                                     return;
                                 }
 

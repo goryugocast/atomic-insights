@@ -27,11 +27,11 @@ export class AtomicInsightsView extends ItemView {
     }
 
     async onOpen() {
-        this.update();
+        void this.update();
         // Register event for file switch
         this.registerEvent(this.app.workspace.on('file-open', (file) => {
             if (file) {
-                this.update(file.path);
+                void this.update(file.path);
             }
         }));
 
@@ -40,7 +40,7 @@ export class AtomicInsightsView extends ItemView {
             if (leaf && leaf.view.getViewType() === VIEW_TYPE_ATOMIC_INSIGHTS) {
                 return;
             }
-            this.update();
+            void this.update();
         }));
     }
 
@@ -65,12 +65,14 @@ export class AtomicInsightsView extends ItemView {
     }
 
     renderEmpty() {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         const container = this.containerEl.children[1] as HTMLElement;
         container.empty();
         container.createEl('div', { text: 'No active file selected.', cls: 'atomic-insights-empty' });
     }
 
     render(filePath: string) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         const container = this.containerEl.children[1] as HTMLElement;
         this.renderer.render({
             container,

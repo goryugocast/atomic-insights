@@ -15,6 +15,7 @@ export default class AtomicInsightsPlugin extends Plugin {
         await this.loadSettings();
 
         this.api = new AtomicInsightsAPI(this);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any).AtomicInsights = this.api;
         this.relatedNotesView = new RelatedNotesView(this);
 
@@ -37,14 +38,14 @@ export default class AtomicInsightsPlugin extends Plugin {
 
         // Ribbon Icon
         this.addRibbonIcon('atomic-insights', 'Atomic Insights', () => {
-            this.activateView();
+            void this.activateView();
         });
 
         this.addCommand({
             id: 'open-atomic-insights',
             name: 'Open Atomic Insights View',
             callback: () => {
-                this.activateView();
+                void this.activateView();
             },
         });
 
@@ -137,7 +138,7 @@ export default class AtomicInsightsPlugin extends Plugin {
         }
 
         if (leaf) {
-            workspace.revealLeaf(leaf);
+            await workspace.revealLeaf(leaf);
         }
     }
 }

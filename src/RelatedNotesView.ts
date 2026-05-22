@@ -29,7 +29,7 @@ export class RelatedNotesView {
             return;
         }
 
-        const view = leaf.view as MarkdownView;
+        const view = leaf.view;
         const file = view.file;
 
         if (!file) {
@@ -88,7 +88,8 @@ export class RelatedNotesView {
         }
 
         // Check if we already have our footer in the CORRECT parent
-        let footer = parent.querySelector(':scope > .atomic-insights-footer') as HTMLElement;
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        let footer = parent.querySelector(':scope > .atomic-insights-footer') as HTMLElement | null;
 
         if (!footer) {
             footer = parent.createDiv({ cls: 'atomic-insights-footer' });
