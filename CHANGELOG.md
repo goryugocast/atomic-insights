@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.2] - 2026-05-30
+### Fixed
+- **CLI API Returns Empty**: The async `getRelatedNotes`/`getActiveRelatedNotes` yield to the event loop via `setTimeout`, but the Obsidian CLI `eval` command cannot await a Promise that crosses an event-loop tick, so CLI calls returned empty. (Regression from 0.4.0 / `calculateAsync`.)
+
+### Added
+- **Synchronous API**: Added `getRelatedNotesSync(path, options)` and `getActiveRelatedNotesSync(options)` for CLI and script callers. They return the same response shape synchronously, so `obsidian eval` reliably receives results. The async variants remain for in-app use.
+
 ## [0.3.3] - 2026-03-27
 ### Added
 - **API Documentation**: Documented the external `window.AtomicInsights` API in both English and Japanese READMEs, including usage examples and error behavior.

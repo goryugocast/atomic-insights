@@ -14,6 +14,22 @@ You can confirm the CLI command shape with:
 obsidian help eval
 ```
 
+## Important: use the `*Sync` methods from the CLI
+
+The Obsidian CLI `eval` command can only return the result of code that resolves
+**synchronously or within an immediate microtask**. It does **not** wait for a
+Promise that crosses an event-loop tick (anything that goes through `setTimeout`,
+I/O, etc.) — such calls return an empty result.
+
+The async methods (`getRelatedNotes`, `getActiveRelatedNotes`) yield to the event
+loop internally to avoid blocking the UI thread, so calling them from the CLI
+returns empty. For the CLI, always use the synchronous variants below:
+
+- `getRelatedNotesSync(path, options)`
+- `getActiveRelatedNotesSync(options)`
+
+They return the same response shape, just synchronously.
+
 ## Quick check
 
 This verifies that the plugin API is available in the running app:
@@ -31,10 +47,7 @@ object
 ## Get related notes for the active note
 
 ```bash
-obsidian eval code='(async () => {
-  const result = await window.AtomicInsights.getActiveRelatedNotes({ limit: 5 });
-  return JSON.stringify(result, null, 2);
-})()'
+obsidian eval code='JSON.stringify(window.AtomicInsights.getActiveRelatedNotesSync({ limit: 5 }), null, 2)'
 ```
 
 This is the fastest way to test the plugin from a script or terminal while you are looking at a note in Obsidian.
@@ -42,10 +55,7 @@ This is the fastest way to test the plugin from a script or terminal while you a
 ## Get related notes for a specific file
 
 ```bash
-obsidian eval code='(async () => {
-  const result = await window.AtomicInsights.getRelatedNotes("Inbox/My Note.md", { limit: 10 });
-  return JSON.stringify(result, null, 2);
-})()'
+obsidian eval code='JSON.stringify(window.AtomicInsights.getRelatedNotesSync("Inbox/My Note.md", { limit: 10 }), null, 2)'
 ```
 
 Use the exact vault path, not a wikilink-style name.
@@ -53,8 +63,8 @@ Use the exact vault path, not a wikilink-style name.
 ## Return only note paths
 
 ```bash
-obsidian eval code='(async () => {
-  const result = await window.AtomicInsights.getRelatedNotes("Inbox/My Note.md", { limit: 10 });
+obsidian eval code='(() => {
+  const result = window.AtomicInsights.getRelatedNotesSync("Inbox/My Note.md", { limit: 10 });
   if (result.status !== "success") return result.message;
   return result.results.map((item) => item.path).join("\\n");
 })()'
@@ -65,8 +75,8 @@ This is handy when you want shell-friendly output for piping into another tool.
 ## Return a compact TSV-style output
 
 ```bash
-obsidian eval code='(async () => {
-  const result = await window.AtomicInsights.getRelatedNotes("Inbox/My Note.md", { limit: 10 });
+obsidian eval code='(() => {
+  const result = window.AtomicInsights.getRelatedNotesSync("Inbox/My Note.md", { limit: 10 });
   if (result.status !== "success") return "error\\t" + result.message;
   return result.results
     .map((item) => [item.path, item.score, (item.reasons || []).join(",")].join("\\t"))
@@ -85,8 +95,8 @@ Logs/2026-03-27.md	0.88	time
 ## Handle missing files safely
 
 ```bash
-obsidian eval code='(async () => {
-  const result = await window.AtomicInsights.getRelatedNotes("Inbox/Does Not Exist.md");
+obsidian eval code='(() => {
+  const result = window.AtomicInsights.getRelatedNotesSync("Inbox/Does Not Exist.md");
   if (result.status === "error") return "ERROR: " + result.message;
   return JSON.stringify(result.results, null, 2);
 })()'
@@ -104,8 +114,8 @@ set -euo pipefail
 
 NOTE_PATH="${1:-Inbox/My Note.md}"
 
-obsidian eval code="(async () => {
-  const result = await window.AtomicInsights.getRelatedNotes(\"${NOTE_PATH}\", { limit: 5 });
+obsidian eval code="(() => {
+  const result = window.AtomicInsights.getRelatedNotesSync(\"${NOTE_PATH}\", { limit: 5 });
   if (result.status !== 'success') return 'ERROR: ' + result.message;
   return result.results.map((item) => item.path).join('\n');
 })()"
@@ -113,8 +123,16 @@ obsidian eval code="(async () => {
 
 This pattern is useful for daily-note helpers, automation jobs, and quick terminal queries.
 
+## Async methods (in-app use)
+
+`getRelatedNotes(path, options)` and `getActiveRelatedNotes(options)` are the
+Promise-returning versions. They yield to the event loop during heavy computation
+to keep the UI responsive, which makes them suitable for in-app callers (plugins,
+DataviewJS, etc.) but **not** for the CLI `eval` command. Prefer the `*Sync`
+variants from the terminal.
+
 ## Notes
 
 - The CLI command runs JavaScript inside the currently running Obsidian app.
 - If `window.AtomicInsights` is `undefined`, make sure the plugin is enabled and Obsidian has finished loading it.
-- `getActiveRelatedNotes()` requires an active markdown note in the current workspace.
+- `getActiveRelatedNotesSync()` requires an active markdown note in the current workspace.
