@@ -3,6 +3,15 @@ import { AtomicInsightsView, VIEW_TYPE_ATOMIC_INSIGHTS } from './AnalysisView';
 import { DEFAULT_SETTINGS, AtomicInsightsSettings, AtomicInsightsSettingTab } from './Settings';
 import { RelatedNotesView } from './RelatedNotesView';
 import { AtomicInsightsAPI } from './API';
+import { restoreNativeBacklinks } from './nativeBacklinks';
+
+interface BacklinkCorePlugin {
+    instance?: { options?: { backlinkInDocument?: boolean } };
+}
+
+interface AppWithInternalPlugins {
+    internalPlugins?: { plugins?: Record<string, BacklinkCorePlugin> };
+}
 
 export default class AtomicInsightsPlugin extends Plugin {
     settings: AtomicInsightsSettings;
@@ -91,6 +100,30 @@ export default class AtomicInsightsPlugin extends Plugin {
         this.updateBodyClass();
 
         this.relatedNotesView.refresh();
+    }
+
+    /** Restore native backlinks for leaves that retain a stale false override. */
+    async clearNativeBacklinkOverrides(): Promise<void> {
+        const nativeBacklinksEnabled = (this.app as unknown as AppWithInternalPlugins)
+            .internalPlugins?.plugins?.backlink?.instance?.options?.backlinkInDocument === true;
+        if (!nativeBacklinksEnabled) return;
+
+        const updates: Promise<void>[] = [];
+
+        this.app.workspace.iterateAllLeaves((leaf) => {
+            if (!(leaf.view instanceof MarkdownView)) return;
+
+            const restoredState = restoreNativeBacklinks(leaf.getViewState(), nativeBacklinksEnabled);
+            if (!restoredState) return;
+
+            updates.push(
+                leaf.setViewState(restoredState).catch((error: unknown) => {
+                    console.error('Atomic Insights: Failed to restore native backlinks', error);
+                })
+            );
+        });
+
+        await Promise.all(updates);
     }
 
     updateBodyClass() {

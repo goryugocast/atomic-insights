@@ -236,6 +236,9 @@ export class AtomicInsightsSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     this.plugin.settings.replaceNativeBacklinks = value;
                     await this.plugin.saveSettings();
+                    if (!value) {
+                        await this.plugin.clearNativeBacklinkOverrides();
+                    }
                 }));
 
         new Setting(containerEl)
