@@ -1,6 +1,7 @@
 import { ItemView, MarkdownView, setIcon } from 'obsidian';
 import AtomicInsightsPlugin from './main';
 import { RenderGeneration } from './RenderGeneration';
+import { openRelatedNote } from './relatedNoteNavigation';
 import { HybridScoringService } from './scoring/HybridScoringService';
 
 type RenderOptions = {
@@ -121,15 +122,17 @@ export class RelatedNotesRenderer {
             // A. Item Header (Name + Bar) - Click to Open Note
             const itemHeader = contentContainer.createDiv({ cls: 'atomic-insights-item-header' });
 
-            itemHeader.addEventListener('click', (e) => {
+            const openItem = async (e: MouseEvent) => {
                 e.preventDefault();
-                if (e.metaKey || e.ctrlKey) {
-                    const leaf = this.plugin.app.workspace.getLeaf('tab');
-                    const targetFile = this.plugin.app.vault.getFileByPath(res.path);
-                    if (targetFile) void leaf.openFile(targetFile);
-                } else {
-                    void this.plugin.app.workspace.openLinkText(res.path, sourcePath);
+                try {
+                    await openRelatedNote(this.plugin.app, res.path, sourcePath, e);
+                } catch (error) {
+                    console.error('Atomic Insights: Failed to open related note', error);
                 }
+            };
+            itemHeader.addEventListener('click', (e) => void openItem(e));
+            itemHeader.addEventListener('auxclick', (e) => {
+                if (e.button === 1) void openItem(e);
             });
 
             // Name
@@ -254,23 +257,24 @@ export class RelatedNotesRenderer {
                                 e.stopPropagation();
                                 e.preventDefault();
 
-                                if (e.metaKey || e.ctrlKey) {
-                                    const leaf = this.plugin.app.workspace.getLeaf('tab');
-                                    await leaf.openFile(this.plugin.app.vault.getFileByPath(res.path));
-                                    return;
-                                }
-
-                                await this.plugin.app.workspace.openLinkText(res.path, sourcePath);
+                                const openedLeaf = await openRelatedNote(this.plugin.app, res.path, sourcePath, e);
 
                                 if (linkLineIndex !== -1) {
                                     setTimeout(() => {
-                                        const activeLeaf = this.plugin.app.workspace.getMostRecentLeaf();
+                                        const activeLeaf = openedLeaf ?? this.plugin.app.workspace.getMostRecentLeaf();
                                         if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
                                             const editor = activeLeaf.view.editor;
                                             editor.setCursor({ line: linkLineIndex, ch: 0 });
                                             editor.scrollIntoView({ from: { line: linkLineIndex, ch: 0 }, to: { line: linkLineIndex, ch: 0 } }, true);
                                         }
                                     }, 100);
+                                }
+                            });
+                            previewContainer.addEventListener('auxclick', (e) => {
+                                if (e.button === 1) {
+                                    void openRelatedNote(this.plugin.app, res.path, sourcePath, e).catch((error: unknown) => {
+                                        console.error('Atomic Insights: Failed to open related note', error);
+                                    });
                                 }
                             });
                         }
