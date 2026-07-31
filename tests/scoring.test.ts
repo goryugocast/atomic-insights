@@ -20,6 +20,11 @@ describe('timeParsing', () => {
         expect(date?.getMonth()).toBe(0);
         expect(date?.getDate()).toBe(15);
     });
+
+    it('rejects impossible calendar dates instead of normalizing them', () => {
+        expect(parseDateFromPath('2026-13-40.md')).toBeNull();
+        expect(parseDateFromPath('ks.240230_Title.md')).toBeNull();
+    });
 });
 
 describe('exclusions', () => {

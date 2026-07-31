@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.3] - 2026-07-31
+### Fixed
+- **Native Backlinks Restoration**: Turning off **Replace native backlinks** now restores open Markdown tabs that retained a `backlinks: false` override, while respecting Obsidian's global setting.
+- **Date Parsing**: Invalid dates in filenames no longer normalize into unrelated calendar dates.
+
+### Added
+- **New-tab Navigation**: Cmd/Ctrl-click and middle-click on related notes now open the target in a new tab.
+- **Regression Coverage**: Added tests for native-backlink restoration, related-note navigation, scoring strategies, and hybrid-score aggregation.
+
+### Changed
+- **Footer Lifecycle**: Related-note footers are owned per Markdown view, avoiding cross-pane async preview cancellation and stale DOM placement.
+
 ## [0.4.2] - 2026-05-30
 ### Fixed
 - **CLI API Returns Empty**: The async `getRelatedNotes`/`getActiveRelatedNotes` yield to the event loop via `setTimeout`, but the Obsidian CLI `eval` command cannot await a Promise that crosses an event-loop tick, so CLI calls returned empty. (Regression from 0.4.0 / `calculateAsync`.)

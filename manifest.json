@@ -1,7 +1,7 @@
 {
 	"id": "atomic-insights",
 	"name": "Atomic Insights",
-	"version": "0.4.2",
+	"version": "0.4.3",
 	"minAppVersion": "0.15.0",
 	"description": "Analyze your vault's graph connections using the Adamic Adar index to surface related notes.",
 	"author": "goryugo",

@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { restoreNativeBacklinks } from '../src/nativeBacklinks';
+import { describe, expect, it, vi } from 'vitest';
+import { restoreNativeBacklinks, restoreNativeBacklinksInLeaves } from '../src/nativeBacklinks';
 
 describe('restoreNativeBacklinks', () => {
     it('restores a false per-leaf override when the native default is enabled', () => {
@@ -33,4 +33,23 @@ describe('restoreNativeBacklinks', () => {
 
         expect(restoreNativeBacklinks(viewState, false)).toBeNull();
     });
+
+    it('restores every open markdown leaf that retains false', async () => {
+        const stale = fakeLeaf({ type: 'markdown', state: { file: 'A.md', backlinks: false } });
+        const alreadyVisible = fakeLeaf({ type: 'markdown', state: { file: 'B.md', backlinks: true } });
+
+        await restoreNativeBacklinksInLeaves([stale, alreadyVisible], true);
+
+        expect(stale.setViewState).toHaveBeenCalledWith({
+            type: 'markdown', state: { file: 'A.md', backlinks: true }
+        });
+        expect(alreadyVisible.setViewState).not.toHaveBeenCalled();
+    });
 });
+
+function fakeLeaf(viewState: { type: string; state: Record<string, unknown> }) {
+    return {
+        getViewState: () => viewState,
+        setViewState: vi.fn().mockResolvedValue(undefined)
+    };
+}
