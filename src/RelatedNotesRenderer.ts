@@ -1,5 +1,6 @@
 import { ItemView, MarkdownView, setIcon } from 'obsidian';
 import AtomicInsightsPlugin from './main';
+import { RenderGeneration } from './RenderGeneration';
 import { HybridScoringService } from './scoring/HybridScoringService';
 
 type RenderOptions = {
@@ -14,7 +15,7 @@ type RenderOptions = {
 export class RelatedNotesRenderer {
     plugin: AtomicInsightsPlugin;
     scoringService: HybridScoringService;
-    renderToken = 0;
+    private readonly generations = new RenderGeneration<HTMLElement>();
 
     constructor(plugin: AtomicInsightsPlugin) {
         this.plugin = plugin;
@@ -22,9 +23,8 @@ export class RelatedNotesRenderer {
     }
 
     render(options: RenderOptions) {
-        this.renderToken += 1;
-        const token = this.renderToken;
         const { container, sourcePath, viewContext, hoverSource, emptyText, onRerender } = options;
+        const generation = this.generations.next(container);
 
         container.empty();
 
@@ -150,13 +150,13 @@ export class RelatedNotesRenderer {
             if (this.plugin.settings.showContext) {
                 const previewContainer = contentContainer.createDiv({ cls: 'atomic-insights-preview-container' });
                 setTimeout(async () => {
-                    if (token !== this.renderToken) return;
+                    if (!this.generations.isCurrent(container, generation)) return;
                     try {
                         const targetFile = this.plugin.app.metadataCache.getFirstLinkpathDest(res.path, sourcePath);
                         if (!targetFile) return;
 
                         const content = await this.plugin.app.vault.cachedRead(targetFile);
-                        if (token !== this.renderToken) return;
+                        if (!this.generations.isCurrent(container, generation)) return;
                         const lines = content.split('\n');
 
                         let textToShow = '';
@@ -235,16 +235,18 @@ export class RelatedNotesRenderer {
                         }
 
                         if (textToShow) {
-                            if (token !== this.renderToken) return;
+                            if (!this.generations.isCurrent(container, generation)) return;
                             void import('obsidian').then(({ MarkdownRenderer }) => {
-                                if (token !== this.renderToken) return;
-                                void MarkdownRenderer.render(
+                                if (!this.generations.isCurrent(container, generation)) return;
+                                return MarkdownRenderer.render(
                                     this.plugin.app,
                                     textToShow,
                                     previewContainer,
                                     targetFile.path,
                                     viewContext
-                                );
+                                ).catch((error: unknown) => {
+                                    console.error('Atomic Insights: Failed to render context', error);
+                                });
                             });
 
                             previewContainer.addClass('is-clickable');

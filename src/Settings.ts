@@ -230,7 +230,7 @@ export class AtomicInsightsSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('Replace native backlinks')
-            .setDesc('Hide the native Obsidian backlinks view and reset editor padding.')
+            .setDesc('Hide the native Obsidian backlinks view while showing related notes below the note.')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.replaceNativeBacklinks)
                 .onChange(async (value) => {

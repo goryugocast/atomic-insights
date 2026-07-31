@@ -52,13 +52,9 @@
 
 /* Related Notes Footer */
 .atomic-insights-footer {
-    padding: 20px 0 40px 0;
-    /* Removed horizontal padding (was 20px) to align with content */
+    margin: 1.5em var(--size-4-4) 0;
+    padding: var(--size-4-3) 0 var(--size-4-6);
     border-top: 1px solid var(--background-modifier-border);
-    margin-top: 30px;
-    background-color: var(--background-primary);
-    width: 100%;
-    flex-shrink: 0;
     box-sizing: border-box;
 }
 
@@ -68,13 +64,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: var(--size-4-2);
 }
 
 .atomic-insights-header {
-    font-size: var(--font-ui-medium);
-    font-weight: var(--font-bold);
-    color: var(--text-normal);
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-medium);
+    color: var(--text-muted);
     margin-bottom: 0;
     /* Remove bottom margin as container handles it */
 }
@@ -125,12 +121,12 @@
     display: flex;
     align-items: flex-start;
     justify-content: flex-start;
-    padding: 0 12px 0 6px;
+    padding: var(--size-2-1) var(--size-4-2);
     /* Compact horizontal padding, vertical handled by children */
     font-size: var(--font-ui-small);
     line-height: var(--line-height-tight);
     color: var(--text-normal);
-    border-radius: 4px;
+    border-radius: var(--radius-s);
     margin-bottom: 0;
 }
 
@@ -282,15 +278,9 @@
     margin-block-end: 4px;
 }
 
-/* Replace Native Backlinks Mode */
-.atomic-insights-replace-native .embedded-backlinks {
+/* Replace the core footer only; do not alter editor or preview layout globally. */
+.atomic-insights-replace-native .embedded-backlinks:not(.atomic-insights-footer) {
     display: none !important;
-}
-
-.atomic-insights-replace-native .cm-content,
-.atomic-insights-replace-native .markdown-preview-sizer {
-    padding-bottom: 0 !important;
-    min-height: auto !important;
 }
 
 /* Icon Size safety */

@@ -58,14 +58,10 @@ export default class AtomicInsightsPlugin extends Plugin {
             })
         );
 
-        // Listen for metadata changes (Auto-Update)
-        // Uses metadataCache.on('changed') to ensure we have fresh resolvedLinks.
+        // A graph change can affect every open note, not just the most recent leaf.
         this.registerEvent(
             this.app.metadataCache.on('changed', (_file) => {
-                const activeLeaf = this.app.workspace.getMostRecentLeaf();
-                if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
-                    this.relatedNotesView.debouncedUpdate(activeLeaf);
-                }
+                this.relatedNotesView.debouncedRefresh();
             })
         );
 
@@ -83,17 +79,7 @@ export default class AtomicInsightsPlugin extends Plugin {
         console.log('Unloading Atomic Insights');
         document.body.classList.remove('atomic-insights-replace-native');
 
-        // Clean up footer from all leaves if necessary
-        // Ideally we iterate leaves, but simply letting them be destroyed/removed by GC or manual navigation is okay 
-        // if we are cautious. But strictly specific cleanup:
-        this.app.workspace.iterateAllLeaves((leaf) => {
-            // We can't easily access the specific DOM element without re-querying
-            const view = leaf.view;
-            if (view instanceof MarkdownView) {
-                const footer = view.contentEl.querySelector('.atomic-insights-footer');
-                if (footer) footer.remove();
-            }
-        });
+        this.relatedNotesView.removeAll();
     }
 
     async loadSettings() {
@@ -104,11 +90,7 @@ export default class AtomicInsightsPlugin extends Plugin {
         await this.saveData(this.settings);
         this.updateBodyClass();
 
-        // Refresh view for active leaf
-        const activeLeaf = this.app.workspace.getMostRecentLeaf();
-        if (activeLeaf) {
-            this.relatedNotesView.update(activeLeaf);
-        }
+        this.relatedNotesView.refresh();
     }
 
     updateBodyClass() {
