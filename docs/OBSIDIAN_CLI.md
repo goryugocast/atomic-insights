@@ -49,6 +49,21 @@ Expected result:
 object
 ```
 
+## Enable or recover the plugin
+
+If the quick check is not `object`, enable the community plugin and then reload
+it in the open vault before checking again:
+
+```bash
+obsidian plugin:enable id=atomic-insights filter=community
+obsidian plugin:reload id=atomic-insights
+obsidian eval code='JSON.stringify({enabled:app.plugins.enabledPlugins.has("atomic-insights"),api:typeof app.plugins.getPlugin("atomic-insights")?.api})'
+```
+
+The expected response is `{"enabled":true,"api":"object"}`. Do not fall back
+to `window.AtomicInsights` when this fails: the plugin is unavailable to the CLI
+until the plugin-manager API is present.
+
 ## Get related notes for the active note
 
 ```bash

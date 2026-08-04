@@ -22,7 +22,7 @@ LLM は意味的に似たテキスト——似た言葉を使っているノー�
 
 ## AI 連携
 
-Atomic Insights はプラグイン読み込み後に `window.AtomicInsights` としてランタイム API を公開します。レスポンスは構造化 JSON（path, score, reasons, commonNeighbors）です。[Obsidian CLI](https://obsidian.md/blog/introducing-obsidian-cli/) と組み合わせることで、AI コーディングエージェントがターミナルからナレッジグラフを照会し、結果をもとに行動できます。
+Atomic Insights は構造化 JSON（path, score, reasons, commonNeighbors）を返す公開プラグイン API を持ちます。Obsidian CLI では `app.plugins.getPlugin("atomic-insights").api` から取得する。互換用の `window.AtomicInsights` よりこの経路が確実です。[Obsidian CLI](https://obsidian.md/blog/introducing-obsidian-cli/) と組み合わせることで、AI コーディングエージェントがターミナルからナレッジグラフを照会し、結果をもとに行動できます。
 
 ### これで何ができるか
 
@@ -42,10 +42,10 @@ AI エージェントは以下のことができます:
 
 ```bash
 # API が利用可能か確認
-obsidian eval code='typeof window.AtomicInsights'
+obsidian eval code='typeof app.plugins.getPlugin("atomic-insights")?.api'
 
 # 特定ファイルの関連ノート上位5件を取得
-obsidian eval code='JSON.stringify(window.AtomicInsights.getRelatedNotesSync("Path/To/Note.md", { limit: 5 }), null, 2)'
+obsidian eval code='JSON.stringify(app.plugins.getPlugin("atomic-insights").api.getRelatedNotesSync("Path/To/Note.md", { limit: 5 }), null, 2)'
 ```
 
 CLI の詳細（同期/非同期の使い分け、シェルスクリプト例、エラーハンドリング）は [docs/OBSIDIAN_CLI.md](docs/OBSIDIAN_CLI.md) を参照してください。

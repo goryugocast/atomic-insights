@@ -24,6 +24,8 @@ export default class AtomicInsightsPlugin extends Plugin {
         await this.loadSettings();
 
         this.api = new AtomicInsightsAPI(this);
+        // Compatibility for existing in-app callers. CLI integrations must
+        // obtain this public API from app.plugins.getPlugin("atomic-insights").api.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any).AtomicInsights = this.api;
         this.relatedNotesView = new RelatedNotesView(this);

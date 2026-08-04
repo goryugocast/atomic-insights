@@ -22,7 +22,7 @@ LLMs are good at finding semantically similar text — notes that use similar wo
 
 ## AI integration
 
-Atomic Insights exposes a runtime API on `window.AtomicInsights` that returns structured JSON (path, score, reasons, common neighbors). Combined with the [Obsidian CLI](https://obsidian.md/blog/introducing-obsidian-cli/), AI coding agents can query your knowledge graph from the terminal and act on the results.
+Atomic Insights exposes a public plugin API that returns structured JSON (path, score, reasons, common neighbors). From the Obsidian CLI, get it through `app.plugins.getPlugin("atomic-insights").api`; this is more reliable than the compatibility global `window.AtomicInsights`. Combined with the [Obsidian CLI](https://obsidian.md/blog/introducing-obsidian-cli/), AI coding agents can query your knowledge graph from the terminal and act on the results.
 
 ### What this enables
 
@@ -42,10 +42,10 @@ An AI agent can:
 
 ```bash
 # Verify the API is available
-obsidian eval code='typeof window.AtomicInsights'
+obsidian eval code='typeof app.plugins.getPlugin("atomic-insights")?.api'
 
 # Get top 5 related notes for a specific file
-obsidian eval code='JSON.stringify(window.AtomicInsights.getRelatedNotesSync("Path/To/Note.md", { limit: 5 }), null, 2)'
+obsidian eval code='JSON.stringify(app.plugins.getPlugin("atomic-insights").api.getRelatedNotesSync("Path/To/Note.md", { limit: 5 }), null, 2)'
 ```
 
 For the full CLI reference (sync vs async, shell scripts, error handling), see [docs/OBSIDIAN_CLI.md](docs/OBSIDIAN_CLI.md).
