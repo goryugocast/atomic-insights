@@ -32,6 +32,8 @@ An AI agent can:
 - Discover connections you haven't explicitly made — surfaced by the graph, not by keyword overlap.
 - Use the structured output (scores, reasons, common neighbors) to decide what to link, where to file a note, or which notes to consolidate.
 
+Use keyword search first for known terms, duplicates, and a named subject. Then use Atomic Insights to surface structurally adjacent notes that those terms do not retrieve. A result is a reading candidate, not an automatic edit: read the note and its common neighbors, and state the connection it would add before linking it.
+
 ### Example use cases
 
 - Suggest notes to link from a daily note or index page, based on graph proximity rather than keyword overlap.
