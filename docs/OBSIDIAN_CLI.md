@@ -1,12 +1,17 @@
 # Atomic Insights with Obsidian CLI
 
-This document shows concrete examples of calling the `window.AtomicInsights` API from the Obsidian CLI.
+This document shows concrete examples of calling Atomic Insights from the Obsidian CLI.
+
+For CLI `eval`, obtain the plugin from Obsidian's plugin manager and call its
+public API: `app.plugins.getPlugin("atomic-insights").api`. Do not use
+`window.AtomicInsights` as the CLI integration point: it is only a compatibility
+global and is not reliably present in every eval context.
 
 ## Prerequisites
 
 - The plugin must be installed and enabled in your vault.
 - Obsidian must be running with the target vault open.
-- The plugin must already be loaded, so `window.AtomicInsights` is available.
+- The plugin must already be loaded, so `app.plugins.getPlugin("atomic-insights")?.api` is available.
 
 You can confirm the CLI command shape with:
 
@@ -35,7 +40,7 @@ They return the same response shape, just synchronously.
 This verifies that the plugin API is available in the running app:
 
 ```bash
-obsidian eval code='typeof window.AtomicInsights'
+obsidian eval code='typeof app.plugins.getPlugin("atomic-insights")?.api'
 ```
 
 Expected result:
@@ -47,7 +52,7 @@ object
 ## Get related notes for the active note
 
 ```bash
-obsidian eval code='JSON.stringify(window.AtomicInsights.getActiveRelatedNotesSync({ limit: 5 }), null, 2)'
+obsidian eval code='JSON.stringify(app.plugins.getPlugin("atomic-insights").api.getActiveRelatedNotesSync({ limit: 5 }), null, 2)'
 ```
 
 This is the fastest way to test the plugin from a script or terminal while you are looking at a note in Obsidian.
@@ -55,7 +60,7 @@ This is the fastest way to test the plugin from a script or terminal while you a
 ## Get related notes for a specific file
 
 ```bash
-obsidian eval code='JSON.stringify(window.AtomicInsights.getRelatedNotesSync("Inbox/My Note.md", { limit: 10 }), null, 2)'
+obsidian eval code='JSON.stringify(app.plugins.getPlugin("atomic-insights").api.getRelatedNotesSync("Inbox/My Note.md", { limit: 10 }), null, 2)'
 ```
 
 Use the exact vault path, not a wikilink-style name.
@@ -64,7 +69,9 @@ Use the exact vault path, not a wikilink-style name.
 
 ```bash
 obsidian eval code='(() => {
-  const result = window.AtomicInsights.getRelatedNotesSync("Inbox/My Note.md", { limit: 10 });
+  const plugin = app.plugins.getPlugin("atomic-insights");
+  if (!plugin?.api) return "ERROR: Atomic Insights plugin API is unavailable";
+  const result = plugin.api.getRelatedNotesSync("Inbox/My Note.md", { limit: 10 });
   if (result.status !== "success") return result.message;
   return result.results.map((item) => item.path).join("\\n");
 })()'
@@ -76,7 +83,9 @@ This is handy when you want shell-friendly output for piping into another tool.
 
 ```bash
 obsidian eval code='(() => {
-  const result = window.AtomicInsights.getRelatedNotesSync("Inbox/My Note.md", { limit: 10 });
+  const plugin = app.plugins.getPlugin("atomic-insights");
+  if (!plugin?.api) return "error\\tAtomic Insights plugin API is unavailable";
+  const result = plugin.api.getRelatedNotesSync("Inbox/My Note.md", { limit: 10 });
   if (result.status !== "success") return "error\\t" + result.message;
   return result.results
     .map((item) => [item.path, item.score, (item.reasons || []).join(",")].join("\\t"))
@@ -96,7 +105,9 @@ Logs/2026-03-27.md	0.88	time
 
 ```bash
 obsidian eval code='(() => {
-  const result = window.AtomicInsights.getRelatedNotesSync("Inbox/Does Not Exist.md");
+  const plugin = app.plugins.getPlugin("atomic-insights");
+  if (!plugin?.api) return "ERROR: Atomic Insights plugin API is unavailable";
+  const result = plugin.api.getRelatedNotesSync("Inbox/Does Not Exist.md");
   if (result.status === "error") return "ERROR: " + result.message;
   return JSON.stringify(result.results, null, 2);
 })()'
@@ -115,7 +126,9 @@ set -euo pipefail
 NOTE_PATH="${1:-Inbox/My Note.md}"
 
 obsidian eval code="(() => {
-  const result = window.AtomicInsights.getRelatedNotesSync(\"${NOTE_PATH}\", { limit: 5 });
+  const plugin = app.plugins.getPlugin(\"atomic-insights\");
+  if (!plugin?.api) return 'ERROR: Atomic Insights plugin API is unavailable';
+  const result = plugin.api.getRelatedNotesSync(\"${NOTE_PATH}\", { limit: 5 });
   if (result.status !== 'success') return 'ERROR: ' + result.message;
   return result.results.map((item) => item.path).join('\n');
 })()"
@@ -134,5 +147,5 @@ variants from the terminal.
 ## Notes
 
 - The CLI command runs JavaScript inside the currently running Obsidian app.
-- If `window.AtomicInsights` is `undefined`, make sure the plugin is enabled and Obsidian has finished loading it.
+- If `app.plugins.getPlugin("atomic-insights")?.api` is `undefined`, make sure the plugin is enabled and Obsidian has finished loading it.
 - `getActiveRelatedNotesSync()` requires an active markdown note in the current workspace.
