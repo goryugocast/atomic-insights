@@ -67,7 +67,7 @@ This design follows the principle that "excluded" should mean *"this folder does
 
 ## Direct-link inclusion
 
-If `Show Backlinks` or `Show Outgoing Links` is enabled, the plugin adds any explicit `[[]]` neighbor of `S` to the result list with score `0` if it is not already scored. This guarantees that a note you have explicitly linked is never hidden, regardless of how the scoring strategies ranked it.
+If `Show Backlinks` or `Show Outgoing Links` is enabled, the plugin adds any explicit `[[]]` neighbor of `S` to the result list with score `0` if it is not already scored. The GUI initially displays the top 20 results to limit context-preview work. When there are more results, **Show all N notes** expands the complete list, including lower-ranked direct links. This also provides access to those links when Atomic Insights replaces the native backlinks footer. The API retains its caller-selected `limit`.
 
 ## Daily folder detection
 
