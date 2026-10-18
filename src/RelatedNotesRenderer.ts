@@ -11,6 +11,7 @@ type RenderOptions = {
     hoverSource: string;
     emptyText: string;
     onRerender: () => void;
+    showAll?: boolean;
 };
 
 export class RelatedNotesRenderer {
@@ -76,8 +77,8 @@ export class RelatedNotesRenderer {
             return;
         }
 
-        // Show top 20 (Reduced from 50 for performance with context expansion)
-        const topResults = results.slice(0, 20);
+        // Keep initial context rendering bounded; lower-ranked links remain reachable.
+        const topResults = options.showAll ? results : results.slice(0, 20);
 
         topResults.forEach((res: { path: string; score: number; reasons?: string[]; details?: Record<string, unknown> }) => {
             const item = listContainer.createDiv({ cls: 'atomic-insights-item' });
@@ -309,5 +310,13 @@ export class RelatedNotesRenderer {
                 });
             });
         });
+
+        if (topResults.length < results.length) {
+            const showAllButton = container.createEl('button', {
+                cls: 'atomic-insights-show-all',
+                text: `Show all ${results.length} notes`
+            });
+            showAllButton.onclick = () => this.render({ ...options, showAll: true });
+        }
     }
 }
