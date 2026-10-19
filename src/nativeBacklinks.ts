@@ -5,6 +5,11 @@ export type NativeBacklinksLeaf = {
     setViewState(viewState: ViewState): Promise<void>;
 };
 
+/** Only hide Obsidian's backlinks while the replacement footer is enabled. */
+export function shouldReplaceNativeBacklinks(showRelatedNotes: boolean, replaceNativeBacklinks: boolean): boolean {
+    return showRelatedNotes && replaceNativeBacklinks;
+}
+
 /**
  * Restores a stale per-leaf "hide backlinks" override to the native default.
  * WorkspaceLeaf.setViewState merges state, so omitting `backlinks` cannot
