@@ -50,12 +50,23 @@ export class RelatedNotesView {
             return;
         }
 
+        // The registry is cleared while the feature is disabled. Revisit every
+        // open Markdown leaf so enabling it again restores all views immediately.
+        const liveViews = new Set<MarkdownView>();
+        this.plugin.app.workspace.iterateAllLeaves((leaf) => {
+            if (!(leaf.view instanceof MarkdownView)) return;
+            liveViews.add(leaf.view);
+            this.update(leaf);
+        });
+
         for (const [view] of this.footers.entries()) {
-            if (!view.file) {
+            if (!liveViews.has(view)) {
                 this.footers.remove(view);
                 continue;
             }
-            this.render(view, view.file);
+            if (!view.file) {
+                this.footers.remove(view);
+            }
         }
     }
 

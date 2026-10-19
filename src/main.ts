@@ -3,7 +3,7 @@ import { AtomicInsightsView, VIEW_TYPE_ATOMIC_INSIGHTS } from './AnalysisView';
 import { DEFAULT_SETTINGS, AtomicInsightsSettings, AtomicInsightsSettingTab } from './Settings';
 import { RelatedNotesView } from './RelatedNotesView';
 import { AtomicInsightsAPI } from './API';
-import { restoreNativeBacklinksInLeaves } from './nativeBacklinks';
+import { restoreNativeBacklinksInLeaves, shouldReplaceNativeBacklinks } from './nativeBacklinks';
 
 interface BacklinkCorePlugin {
     instance?: { options?: { backlinkInDocument?: boolean } };
@@ -124,7 +124,7 @@ export default class AtomicInsightsPlugin extends Plugin {
     }
 
     updateBodyClass() {
-        if (this.settings.replaceNativeBacklinks) {
+        if (shouldReplaceNativeBacklinks(this.settings.showRelatedNotes, this.settings.replaceNativeBacklinks)) {
             document.body.classList.add('atomic-insights-replace-native');
         } else {
             document.body.classList.remove('atomic-insights-replace-native');
